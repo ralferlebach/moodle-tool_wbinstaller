@@ -76,7 +76,7 @@ function xmldb_tool_wbinstaller_install() {
     
     // Set detault settings.
     $defaultsettings = [
-        'apitoken' => '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',
+        'apitoken' => '',
     ];
 
     $componentname = 'tool_wbinstaller';
