@@ -82,7 +82,8 @@ if ($installzipconfirm) {
             $installable,
             $installzipconfirm,
             get_string('installfromzip', 'tool_wbinstaller'),
-            new moodle_url('/admin/tool/wbinstaller/index.php', ['installzipconfirm' => 1]));
+            new moodle_url('/admin/tool/wbinstaller/index.php', ['installzipconfirm' => 1])
+        );
     } else {
         echo $OUTPUT->notification(get_string('nozipfilesfound', 'tool_wbinstaller'), 'notifyproblem');
     }
