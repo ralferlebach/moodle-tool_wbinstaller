@@ -66,7 +66,7 @@ class itemparamsInstaller extends wbInstaller {
             } else {
                 $this->feedback['needed'][basename($file)]['error'][] =
                   get_string(
-                      'simulationnoinstallerfilefoundexecute',
+                      'itemparamsinstallernotfoundexecute',
                       'tool_wbinstaller',
                       $this->recipe['matcher']['name']
                   );
@@ -84,21 +84,21 @@ class itemparamsInstaller extends wbInstaller {
         $path = $extractpath . $this->recipe['path'];
         foreach (glob("$path/*.csv") as $file) {
             $this->feedback['needed'][basename($file)]['success'][] =
-              get_string('simulationfilefound', 'tool_wbinstaller');
+              get_string('itemparamsfilefound', 'tool_wbinstaller');
             if (
                 isset($this->recipe['matcher']) &&
                 class_exists($this->recipe['matcher']['name'])
             ) {
                 $this->feedback['needed'][basename($file)]['success'][] =
                   get_string(
-                      'simulationinstallerfilefound',
+                      'itemparamsinstallerfilefound',
                       'tool_wbinstaller',
                       $this->recipe['matcher']['name']
                   );
             } else {
                 $this->feedback['needed'][basename($file)]['warning'][] =
                   get_string(
-                      'simulationnoinstallerfilefound',
+                      'itemparamsinstallernotfound',
                       'tool_wbinstaller',
                       $this->recipe['matcher']['name']
                   );
@@ -116,7 +116,7 @@ class itemparamsInstaller extends wbInstaller {
         global $DB;
         $questions = $DB->get_records('question');
         if (! $questions) {
-            $this->feedback['needed'][$filename]['error'][] = 'No questions found';
+            $this->feedback['needed'][$filename]['error'][] = 'No questions found in system.';
         } else if (
             isset($this->recipe['matcher']) &&
             class_exists($this->recipe['matcher']['name'])
@@ -134,10 +134,10 @@ class itemparamsInstaller extends wbInstaller {
                     $content
                 );
                 $this->feedback['needed'][basename($filename)]['success'][] =
-                  get_string('simulationinstallersuccess', 'tool_wbinstaller', $installeroptions['name']);
+                  get_string('itemparamsinstallersuccess', 'tool_wbinstaller', $installeroptions['name']);
         } else {
             $this->feedback['needed'][basename($filename)]['error'][] =
-              get_string('simulationnoinstallerfilefoundexecute', 'tool_wbinstaller');
+              get_string('itemparamsinstallernotfoundexecute', 'tool_wbinstaller');
         }
     }
 }
