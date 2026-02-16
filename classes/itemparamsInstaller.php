@@ -50,7 +50,7 @@ class itemparamsInstaller extends wbInstaller {
      * @param \tool_wbinstaller\wbCheck $parent
      * @return int
      */
-    public function execute(string $extractpath, $parent = null): bool {
+    public function execute($extractpath, $parent = null) {
         $path = $extractpath . $this->recipe['path'];
         foreach (glob("$path/*.csv") as $file) {
             if (
