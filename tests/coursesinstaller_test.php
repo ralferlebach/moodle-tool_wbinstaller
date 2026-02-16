@@ -167,7 +167,7 @@ final class coursesinstaller_test extends advanced_testcase {
         $method->setAccessible(true); // Bypass the protected access level.
 
         // Call the method using reflection.
-        $result = $method->invoke($installer, $coursefile, $mockparent);
+        $result = $method->invoke($installer, $coursefile, $precheckresult, $mockparent);
 
         // Assert the method returns the expected value.
         $this->assertEquals(1, $result, 'The install_course method did not return the expected value.');
