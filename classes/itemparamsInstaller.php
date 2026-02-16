@@ -19,7 +19,7 @@
  *
  * @package     tool_wbinstaller
  * @author      Jacob Viertel
- * @copyright  2023 Wunderbyte GmbH
+ * @copyright  2025 Wunderbyte GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -35,9 +35,7 @@ use Exception;
  * @copyright  2023 Wunderbyte GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class simulationsInstaller extends wbInstaller {
-    /** @var object Matching the course ids from the old => new. */
-    public $installmatcher;
+class itemparamsInstaller extends wbInstaller {
 
     /**
      * Entities constructor.
@@ -46,7 +44,6 @@ class simulationsInstaller extends wbInstaller {
     public function __construct($recipe) {
         $this->recipe = $recipe;
         $this->progress = 0;
-        $this->installmatcher = json_decode(file_get_contents($this->recipe . '/wbinstaller_match.json'));
     }
     /**
      * Exceute the installer.
@@ -54,7 +51,7 @@ class simulationsInstaller extends wbInstaller {
      * @param \tool_wbinstaller\wbCheck $parent
      * @return int
      */
-    public function execute($extractpath, $parent = null) {
+    public function execute(string $extractpath, $parent = null): bool {
         $path = $extractpath . $this->recipe['path'];
         foreach (glob("$path/*.csv") as $file) {
             if (
@@ -83,7 +80,7 @@ class simulationsInstaller extends wbInstaller {
       * @param string $extractpath
       * @param \tool_wbinstaller\wbCheck $parent
       */
-    public function check($extractpath, $parent) {
+    public function check(string $extractpath, \tool_wbinstaller\wbCheck $parent): void {
         $path = $extractpath . $this->recipe['path'];
         foreach (glob("$path/*.csv") as $file) {
             $this->feedback['needed'][basename($file)]['success'][] =
@@ -115,7 +112,7 @@ class simulationsInstaller extends wbInstaller {
       * @param string $filename The name of the itemparams file.
       * @return void
       */
-    private function import_itemparams($filename) {
+    private function import_itemparams(string $filename): void {
         global $DB;
         $questions = $DB->get_records('question');
         if (! $questions) {
