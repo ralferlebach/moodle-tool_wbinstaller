@@ -167,5 +167,4 @@ class wbHelper {
         }
         return $extractpath;
     }
-
 }

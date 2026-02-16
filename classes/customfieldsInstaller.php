@@ -69,14 +69,12 @@ class customfieldsInstaller extends wbInstaller {
                     try {
                         $this->upload_fieldset($customfield, $categoryid);
                         $this->feedback['needed'][$customfields['name']]['success'][] =
-                          get_string('customfieldsuccesss', 'tool_wbinstaller', $customfield['name']);
+                            get_string('customfieldsuccesss', 'tool_wbinstaller', $customfield['name']);
                     } catch (\Exception $e) {
-                        $this->feedback['needed'][$customfields['name']]['error'][] =
-                          get_string(
+                        $this->feedback['needed'][$customfields['name']]['error'][] = get_string(
                             'customfielderror',
                             'tool_wbinstaller',
-                            $e->getMessage()
-                          );
+                            $e->getMessage());
                     }
                 }
             }

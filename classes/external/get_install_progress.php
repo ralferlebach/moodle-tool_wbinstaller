@@ -47,7 +47,6 @@ require_once($CFG->libdir . '/externallib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class get_install_progress extends external_api {
-
     /**
      * Describes the parameters for get_next_question webservice.
      *
@@ -58,8 +57,7 @@ class get_install_progress extends external_api {
             'userid' => new external_value(PARAM_INT, 'userid', VALUE_REQUIRED),
             'contextid'  => new external_value(PARAM_INT, 'contextid', VALUE_REQUIRED),
             'filename'  => new external_value(PARAM_TEXT, 'filename', VALUE_REQUIRED),
-            ]
-        );
+            ]);
     }
 
     /**
@@ -98,7 +96,6 @@ class get_install_progress extends external_api {
         return new external_single_structure([
             'progress' => new external_value(PARAM_INT, 'Result Status'),
             'subprogress' => new external_value(PARAM_INT, 'Result Status'),
-            ]
-        );
+            ]);
     }
 }

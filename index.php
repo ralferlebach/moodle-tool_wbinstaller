@@ -22,9 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__.'/../../../config.php');
-require_once($CFG->libdir.'/adminlib.php');
-require_once($CFG->libdir.'/moodlelib.php');
+require_once(__DIR__ . '/../../../config.php');
+require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->libdir . '/moodlelib.php');
 
 global $USER, $CFG;
 
@@ -78,7 +78,9 @@ if ($installzipconfirm) {
 
 
     if (!empty($installable)) {
-        upgrade_install_plugins($installable, $installzipconfirm, get_string('installfromzip', 'tool_wbinstaller'),
+        upgrade_install_plugins($installable,
+            $installzipconfirm,
+            get_string('installfromzip', 'tool_wbinstaller'),
             new moodle_url('/admin/tool/wbinstaller/index.php', ['installzipconfirm' => 1])
         );
     } else {
@@ -89,9 +91,9 @@ $context = context_system::instance();
 
 echo $OUTPUT->header();
 echo $OUTPUT->render_from_template('tool_wbinstaller/initview', [
-  'userid' => $USER->id,
-  'contextid' => $context->id,
-  'wwwroot' => $CFG->wwwroot,
+    'userid' => $USER->id,
+    'contextid' => $context->id,
+    'wwwroot' => $CFG->wwwroot,
 ]);
 
 echo $OUTPUT->footer();

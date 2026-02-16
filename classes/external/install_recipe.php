@@ -47,7 +47,6 @@ require_once($CFG->libdir . '/externallib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class install_recipe extends external_api {
-
     /**
      * Describes the parameters for get_next_question webservice.
      *
@@ -60,8 +59,7 @@ class install_recipe extends external_api {
             'file'  => new external_value(PARAM_RAW, 'file', VALUE_REQUIRED),
             'filename'  => new external_value(PARAM_TEXT, 'file name', VALUE_REQUIRED),
             'optionalplugins'  => new external_value(PARAM_TEXT, 'optional plugins', VALUE_REQUIRED),
-            ]
-        );
+            ]);
     }
 
     /**

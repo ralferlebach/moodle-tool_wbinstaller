@@ -45,8 +45,7 @@ if ($hassiteconfig) {
         'development',
         new admin_externalpage(
             'tool_wbinstaller',
-            get_string('pluginname',
-            'tool_wbinstaller'),
+            get_string('pluginname', 'tool_wbinstaller'),
             new moodle_url('/admin/tool/wbinstaller/index.php')
         )
     );

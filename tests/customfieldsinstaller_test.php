@@ -82,5 +82,5 @@ final class customfieldsinstaller_test extends advanced_testcase {
         // Execute the installer.
         $installer->execute('/somepath/');
     }
-
 }
+

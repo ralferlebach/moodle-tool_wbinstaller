@@ -253,7 +253,7 @@ class learningpathsInstaller extends wbInstaller {
             } else if (
                 is_object($data) &&
                 isset($data->parent->id)
-              ) {
+            ) {
                 if (!in_array($data->parent->id, $this->parent->matchingids[$matchingtype][$checkname])) {
                     $missingentities[] = $data;
                 } else if ($this->update) {

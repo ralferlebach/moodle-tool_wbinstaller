@@ -62,7 +62,6 @@ require_once($CFG->libdir . '/upgradelib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class pluginsInstaller extends wbInstaller {
-
     /** @var object Known subplugins. */
     public $knownsubplugins;
     /** @var tool_installaddon_installer Plugin installer. */
@@ -325,7 +324,7 @@ class pluginsInstaller extends wbInstaller {
      */
     public function get_target_dir($componentname, $type) {
         global $CFG;
-        list($plugintype, $pluginname) = core_component::normalize_component($componentname);
+        [$plugintype, $pluginname] = core_component::normalize_component($componentname);
         $pluginman = core_plugin_manager::instance();
         $targetdir = $pluginman->get_plugintype_root($plugintype);
         if (
@@ -375,7 +374,7 @@ class pluginsInstaller extends wbInstaller {
                     get_string('plugincomponentdetectfailed', 'tool_wbinstaller');
             }
             $targetdir = $this->get_target_dir($component, $installable->type);
-            list($plugintype, $pluginname) = core_component::normalize_component($component);
+            [$plugintype, $pluginname] = core_component::normalize_component($component);
 
             // Check if it's a core plugin or a subplugin.
             if (!is_dir($targetdir)) {
