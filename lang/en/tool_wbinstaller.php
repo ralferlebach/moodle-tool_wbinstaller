@@ -109,6 +109,7 @@ $string['targetdirsubplugin'] = 'The directory {$a} is a subplugin. If the paren
 $string['targetdirwritablecommand'] = 'To change the permission of the directory, execute a command like this: "sudo chmod o+w {$a}"';
 $string['translatorerror'] = 'The translation of {$a->changingcolumn} from the table {$a->table} could not be executed.';
 $string['translatorsuccess'] = 'The translation of {$a->changingcolumn} from the table {$a->table} was successful.';
+$string['upgradeplugincompleted'] = 'Plugin {$a} successfully installed and configured.';
 $string['uploadbuttontext'] = 'Click here to choose recipe.';
 $string['vuecategories'] = 'Category: ';
 $string['vuechooserecipe'] = 'Drag and drop Recipe File here or click below to upload the recipe.';

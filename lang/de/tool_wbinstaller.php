@@ -109,6 +109,7 @@ $string['targetdirsubplugin'] = 'Das Verzeichnis {$a} ist ein Subplugin. Wenn da
 $string['targetdirwritablecommand'] = 'Um die Berechtigung des Verzeichnisses zu ändern, führen Sie einen Befehl wie folgt aus: "sudo chmod o+w {$a}"';
 $string['translatorerror'] = 'Die Übersetzung von {$a->changingcolumn} aus der Tabelle {$a->table} konnte nicht ausgeführt werden.';
 $string['translatorsuccess'] = 'Die Übersetzung von {$a->changingcolumn} aus der Tabelle {$a->table} war erfolgreich.';
+$string['upgradeplugincompleted'] = 'Plugin {$a} wurde erfolgreich installiert und konfiguriert.';
 $string['uploadbuttontext'] = 'Klicken Sie hier, um das Rezept auszuwählen.';
 $string['vuecategories'] = 'Kategorie: ';
 $string['vuechooserecipe'] = 'Ziehen Sie die Rezeptdatei hierher oder klicken Sie unten, um die Datei hochzuladen.';
@@ -142,3 +143,4 @@ $string['warning_description'] = 'Während der Installation sind einige Fehler a
 $string['wbinstaller:canexport'] = 'WB Installer: Benutzer/in darf exportieren';
 $string['wbinstaller:caninstall'] = 'WB Installer: Benutzer/in darf installieren';
 $string['wbinstallerroledescription'] = 'Beschreibung der Rolle wbinstaller';
+
