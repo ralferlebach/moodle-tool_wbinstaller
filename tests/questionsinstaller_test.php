@@ -30,7 +30,6 @@ use moodle_database;
  * @covers \tool_wbinstaller
  */
 final class questionsinstaller_test extends advanced_testcase {
-
     /** @var moodle_database DB mock */
     protected $db;
     /** @var questionsInstaller question installer class */

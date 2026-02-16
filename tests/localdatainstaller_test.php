@@ -29,7 +29,6 @@ use stdClass;
  * @covers \tool_wbinstaller
  */
 final class localdatainstaller_test extends advanced_testcase {
-
     /** @var localdataInstaller An instance of the localdataInstaller class being tested. */
     protected $installer;
     protected function setUp(): void {

@@ -28,7 +28,6 @@ use advanced_testcase;
  * @covers \tool_wbinstaller
  */
 final class customfieldsinstaller_test extends advanced_testcase {
-
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);

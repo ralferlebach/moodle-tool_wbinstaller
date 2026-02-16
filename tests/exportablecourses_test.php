@@ -30,7 +30,6 @@ use stdClass;
  * @covers \tool_wbinstaller
  */
 final class exportablecourses_test extends advanced_testcase {
-
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
