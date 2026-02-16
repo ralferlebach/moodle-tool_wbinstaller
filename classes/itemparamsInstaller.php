@@ -36,7 +36,6 @@ use Exception;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class itemparamsInstaller extends wbInstaller {
-
     /**
      * Entities constructor.
      * @param array $recipe
