@@ -73,5 +73,22 @@ function xmldb_tool_wbinstaller_install() {
             ]);
         }
     }
+    
+    // Set detault settings.
+    $defaultsettings = [
+        'apitoken' => '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',
+    ];
+
+    $componentname = 'tool_wbinstaller';
+    foreach ($defaultsettings as $name => $value) {
+        if (!$DB->record_exists('config_plugins', ['plugin' => 'pluginname', 'name' => $componentname])) {
+            $record = new stdClass();
+            $record->plugin = 'pluginname';
+            $record->name = $name;
+            $record->value = $value;
+            $DB->insert_record('config_plugins', $record);
+        }
+    }
+    
     return true;
 }

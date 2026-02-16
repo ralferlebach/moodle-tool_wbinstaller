@@ -35,7 +35,7 @@ if ($hassiteconfig) {
               $componentname . '/apitoken',
               get_string('apitoken', $componentname),
               get_string('apitokendesc', $componentname),
-              '',
+              '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',
               PARAM_RAW
         ));
     }
