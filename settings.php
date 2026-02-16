@@ -32,11 +32,11 @@ if ($hassiteconfig) {
     // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
     if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_configtext(
-              $componentname . '/apitoken',
-              get_string('apitoken', $componentname),
-              get_string('apitokendesc', $componentname),
-              '',
-              PARAM_RAW
+            $componentname . '/apitoken',
+            get_string('apitoken', $componentname),
+            get_string('apitokendesc', $componentname),
+            '',
+            PARAM_RAW
         ));
     }
 
@@ -44,7 +44,9 @@ if ($hassiteconfig) {
     $ADMIN->add(
         'development',
         new admin_externalpage(
-            'tool_wbinstaller', get_string('pluginname', 'tool_wbinstaller'),
+            'tool_wbinstaller',
+            get_string('pluginname',
+            'tool_wbinstaller'),
             new moodle_url('/admin/tool/wbinstaller/index.php')
         )
     );

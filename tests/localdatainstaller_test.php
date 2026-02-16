@@ -91,7 +91,7 @@ final class localdatainstaller_test extends advanced_testcase {
                     'courses' => [
                         123 => 456, // Old ID 123 maps to new ID 456.
                         456 => 23, // Old ID 123 maps to new ID 456.
-                        23 => 550,  // Old ID 23 maps to new ID 550.
+                        23 => 550, // Old ID 23 maps to new ID 550.
                     ],
                 ],
             ],
@@ -184,7 +184,7 @@ final class localdatainstaller_test extends advanced_testcase {
     /**
      * Test get_scale_matcher function.
      */
-    public function test_get_scale_matcher() {
+    public function test_get_scale_matcher(): void {
         // Mock data API return.
         $json = [
             'catquiz_courses_1_0' => 'testvalue1',

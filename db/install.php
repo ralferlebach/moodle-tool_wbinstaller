@@ -73,7 +73,7 @@ function xmldb_tool_wbinstaller_install() {
             ]);
         }
     }
-    
+
     // Set detault settings.
     $defaultsettings = [
         'apitoken' => '',
@@ -89,6 +89,5 @@ function xmldb_tool_wbinstaller_install() {
             $DB->insert_record('config_plugins', $record);
         }
     }
-    
     return true;
 }

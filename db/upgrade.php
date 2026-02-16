@@ -39,7 +39,6 @@ function xmldb_tool_wbinstaller_upgrade($oldversion) {
     // You will also have to create the db/install.xml file by using the XMLDB Editor.
     // Documentation for the XMLDB Editor can be found at {@link https://docs.moodle.org/dev/XMLDB_editor}.
     if ($oldversion < 2024061004) {
-
         // Define table tool_wbinstaller_install to be created.
         $table = new xmldb_table('tool_wbinstaller_install');
 
