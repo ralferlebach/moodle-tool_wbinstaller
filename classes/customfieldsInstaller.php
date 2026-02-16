@@ -74,7 +74,8 @@ class customfieldsInstaller extends wbInstaller {
                         $this->feedback['needed'][$customfields['name']]['error'][] = get_string(
                             'customfielderror',
                             'tool_wbinstaller',
-                            $e->getMessage());
+                            $e->getMessage()
+                        );
                     }
                 }
             }

@@ -39,12 +39,10 @@ use ZipArchive;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class recipeExporter {
-
     /**
      * Entities constructor.
      */
     public function __construct() {
-
     }
 
     /**
