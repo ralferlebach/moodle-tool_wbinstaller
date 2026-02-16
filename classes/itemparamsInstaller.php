@@ -55,19 +55,19 @@ class simulationsInstaller extends wbInstaller {
      * @return int
      */
     public function execute($extractpath, $parent = null) {
-        $simulationspath = $extractpath . $this->recipe['path'];
-        foreach (glob("$simulationspath/*.csv") as $itemparamsfile) {
+        $path = $extractpath . $this->recipe['path'];
+        foreach (glob("$path/*.csv") as $file) {
             if (
                 isset($this->recipe['matcher']) &&
                 class_exists($this->recipe['matcher']['name'])
             ) {
                 try {
-                    $this->import_itemparams($itemparamsfile);
+                    $this->import_itemparams($file);
                 } catch (Exception $e) {
-                    $this->feedback['needed'][basename($itemparamsfile)]['error'][] = $e;
+                    $this->feedback['needed'][basename($file)]['error'][] = $e;
                 }
             } else {
-                $this->feedback['needed'][basename($itemparamsfile)]['error'][] =
+                $this->feedback['needed'][basename($file)]['error'][] =
                   get_string(
                       'simulationnoinstallerfilefoundexecute',
                       'tool_wbinstaller',
@@ -84,22 +84,22 @@ class simulationsInstaller extends wbInstaller {
       * @param \tool_wbinstaller\wbCheck $parent
       */
     public function check($extractpath, $parent) {
-        $simulationspath = $extractpath . $this->recipe['path'];
-        foreach (glob("$simulationspath/*.csv") as $itemparamsfile) {
-            $this->feedback['needed'][basename($itemparamsfile)]['success'][] =
+        $path = $extractpath . $this->recipe['path'];
+        foreach (glob("$path/*.csv") as $file) {
+            $this->feedback['needed'][basename($file)]['success'][] =
               get_string('simulationfilefound', 'tool_wbinstaller');
             if (
                 isset($this->recipe['matcher']) &&
                 class_exists($this->recipe['matcher']['name'])
             ) {
-                $this->feedback['needed'][basename($itemparamsfile)]['success'][] =
+                $this->feedback['needed'][basename($file)]['success'][] =
                   get_string(
                       'simulationinstallerfilefound',
                       'tool_wbinstaller',
                       $this->recipe['matcher']['name']
                   );
             } else {
-                $this->feedback['needed'][basename($itemparamsfile)]['warning'][] =
+                $this->feedback['needed'][basename($file)]['warning'][] =
                   get_string(
                       'simulationnoinstallerfilefound',
                       'tool_wbinstaller',
