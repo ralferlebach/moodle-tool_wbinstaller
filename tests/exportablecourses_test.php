@@ -29,16 +29,17 @@ use stdClass;
  *
  * @covers \tool_wbinstaller
  */
-class exportablecourses_test extends advanced_testcase {
+final class exportablecourses_test extends advanced_testcase {
 
     protected function setUp(): void {
+        parent::setUp();
         $this->resetAfterTest(true);
     }
 
     /**
      * Test the execute method to ensure courses are installed.
      */
-    public function test_get_courses_returns_empty_array_when_no_courses_exist() {
+    public function test_get_courses_returns_empty_array_when_no_courses_exist(): void {
         global $DB;
         $DB = $this->createMock(\moodle_database::class);
         $DB->expects($this->once())
@@ -54,7 +55,7 @@ class exportablecourses_test extends advanced_testcase {
         $this->assertEmpty($courses);
     }
 
-    public function test_get_courses_returns_courses_array() {
+    public function test_get_courses_returns_courses_array(): void {
         global $DB;
         $DB = $this->createMock(\moodle_database::class);
         $dbrecords = [

@@ -29,7 +29,7 @@ use moodle_database;
  *
  * @covers \tool_wbinstaller
  */
-class questionsinstaller_test extends advanced_testcase {
+final class questionsinstaller_test extends advanced_testcase {
 
     /** @var moodle_database DB mock */
     protected $db;
@@ -39,6 +39,7 @@ class questionsinstaller_test extends advanced_testcase {
     protected $recipe;
 
     protected function setUp(): void {
+        parent::setUp();
         $this->resetAfterTest(true);
         global $CFG;
         require_once($CFG->dirroot . '/question/format/xml/format.php');
@@ -58,7 +59,7 @@ class questionsinstaller_test extends advanced_testcase {
     /**
      * Test constructor and initialization.
      */
-    public function test_constructor_initializes_correctly() {
+    public function test_constructor_initializes_correctly(): void {
         $this->assertInstanceOf(questionsInstaller::class, $this->installer);
         $this->assertEquals($this->recipe, $this->installer->recipe);
     }

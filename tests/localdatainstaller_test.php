@@ -28,11 +28,12 @@ use stdClass;
  *
  * @covers \tool_wbinstaller
  */
-class localdatainstaller_test extends advanced_testcase {
+final class localdatainstaller_test extends advanced_testcase {
 
     /** @var localdataInstaller An instance of the localdataInstaller class being tested. */
     protected $installer;
     protected function setUp(): void {
+        parent::setUp();
         $this->resetAfterTest(true);
         $this->setAdminUser();
         $recipe = [
@@ -50,7 +51,7 @@ class localdatainstaller_test extends advanced_testcase {
      * Test duplicatecheck function.
      * @covers ::duplicatecheck
      */
-    public function test_duplicatecheck() {
+    public function test_duplicatecheck(): void {
         global $DB;
 
         // Create a mock course record.
@@ -78,7 +79,7 @@ class localdatainstaller_test extends advanced_testcase {
      * Test update_nested_json function.
      * @covers ::translate_string_links
      */
-    public function test_translate_string_links() {
+    public function test_translate_string_links(): void {
         global $CFG;
 
         // Set up test environment.
@@ -160,7 +161,7 @@ class localdatainstaller_test extends advanced_testcase {
      * Test course_matching function.
      * @covers ::course_matching
      */
-    public function test_course_matching() {
+    public function test_course_matching(): void {
         // Mock matching IDs.
         $this->installer->parent = (object) [
             'matchingids' => [

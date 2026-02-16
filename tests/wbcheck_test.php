@@ -28,16 +28,17 @@ use advanced_testcase;
  *
  * @covers \tool_wbinstaller
  */
-class wbcheck_test extends advanced_testcase {
+final class wbcheck_test extends advanced_testcase {
 
     protected function setUp(): void {
+        parent::setUp();
         $this->resetAfterTest(true);
     }
 
     /**
      * Test the execute method, which combines several other functionalities.
      */
-    public function test_execute() {
+    public function test_execute(): void {
         // Mock recipe data and filename.
         $recipe = 'data:application/zip;base64,dGVzdGZpbGU=';
         $filename = 'testrecipe.zip';
