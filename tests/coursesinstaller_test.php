@@ -150,7 +150,7 @@ final class coursesinstaller_test extends advanced_testcase {
         $installer->expects($this->once())
             ->method('restore_course')
             ->with(
-                $this->equalTo($coursefile),
+                $this->equalTo($precheckresult),
                 $this->equalTo($mockparent)
             );
 
