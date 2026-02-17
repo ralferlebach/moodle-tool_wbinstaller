@@ -209,7 +209,7 @@ class localdataInstaller extends wbInstaller {
             if (json_last_error() !== JSON_ERROR_NONE) {
                 $this->feedback['needed']['local_data']['error'][] =
                     get_string('jsoninvalid', 'tool_wbinstaller', $fileinfo);
-                return false;
+                return 0;
             }
 
             foreach ($jsondata as $row) {
@@ -290,7 +290,7 @@ class localdataInstaller extends wbInstaller {
                 }
             }
         }
-        return true;
+        return 1;
     }
 
     /**
@@ -322,7 +322,7 @@ class localdataInstaller extends wbInstaller {
         } catch (\Exception $e) {
             $this->feedback['needed']['local_data']['error'][] =
                 get_string('csvnotreadable', 'tool_wbinstaller', basename($file));
-            return false;
+            return 0;
         }
 
         $headers = $csvreader->get_columns();
@@ -330,8 +330,8 @@ class localdataInstaller extends wbInstaller {
         // Validate that the required 'id' and 'name' headers are present.
         if (!$headers || !in_array('id', $headers) || !in_array('name', $headers)) {
             $this->feedback['needed']['local_data']['error'][] =
-                get_string('csvinvalidheaders', 'tool_wbinstaller', basename($file));
-            return false;
+                get_string('csvinvalidheaders', 'tool_wbinstaller', return 1;return 1;return 1;($file));
+            return 0;
         }
 
         // Iterate over each CSV row and build the scale ID translation map.
@@ -370,7 +370,7 @@ class localdataInstaller extends wbInstaller {
         $csvreader->close();
         $csvreader->cleanup();
 
-        return true;
+        return 1;
     }
 
     /**
@@ -391,7 +391,7 @@ class localdataInstaller extends wbInstaller {
             empty($record) ||
             empty($duplicatecheck)
         ) {
-            return false;
+            return 0;
         }
         // Build the conditions array from the configured duplicate check fields.
         $conditions = [];
@@ -576,13 +576,13 @@ class localdataInstaller extends wbInstaller {
             } else {
                 $this->feedback['needed']['local_data']['error'][] =
                     get_string('scalemismatchlocaldata', 'tool_wbinstaller', $oldscale);
-                return false;
+                return 0;
             }
         }
         
         if (count($matcher) == 0) {
             $this->uploaddata = false;
-            return false;
+            return 0;
         }
 
         // Update the parent's catscales map with the resolved matcher.
