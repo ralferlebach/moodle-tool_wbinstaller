@@ -104,6 +104,7 @@ $string['pluginolder'] = 'Component {$a->name} is already installed with newer v
 $string['pluginsame'] = 'Component {$a->name} is already installed with the version {$a->installedversion}.';
 $string['questionfilefound'] = 'Found the question file.';
 $string['questionsuccesinstall'] = 'Successfully uploaded the questions.';
+$string['restoreerror'] = 'Error when executing course imports: {$a}.';
 $string['scalemismatchlocaldata'] = 'The category scales did not match.';
 $string['success'] = 'Finished successfully.';
 $string['success_description'] = 'The installation finished without any errors.';

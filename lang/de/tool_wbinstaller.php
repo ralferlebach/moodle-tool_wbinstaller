@@ -104,6 +104,7 @@ $string['pluginolder'] = 'Komponente {$a->name} ist bereits installiert mit eine
 $string['pluginsame'] = 'Komponente {$a->name} ist bereits installiert mit Version {$a->installedversion}.';
 $string['questionfilefound'] = 'Fragedatei gefunden.';
 $string['questionsuccesinstall'] = 'Fragen erfolgreich hochgeladen.';
+$string['restoreerror'] = 'Fehler bei der Ausführung der Kursimporte: {$a}.';
 $string['scalemismatchlocaldata'] = 'Die Kategorien-Skalen stimmen nicht überein.';
 $string['success'] = 'Erfolgreich abgeschlossen.';
 $string['success_description'] = 'Die Installation wurde ohne Fehler abgeschlossen.';
