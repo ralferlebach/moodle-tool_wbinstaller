@@ -15,31 +15,43 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Entities Class to display list of entity records.
+ * Custom fields installer for creating custom field categories and fields.
+ *
+ * This class handles the creation of Moodle custom field categories and their
+ * associated fields as defined in the Wunderbyte installer recipe. It supports
+ * custom handler namespaces and duplicate detection for existing fields.
  *
  * @package     tool_wbinstaller
  * @author      Jacob Viertel
- * @copyright  2023 Wunderbyte GmbH
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright   2024 Wunderbyte GmbH
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace tool_wbinstaller;
 
 /**
- * Class tool_wbinstaller
+ * Installer class for Moodle custom fields and custom field categories.
+ *
+ * Extends the base wbInstaller to provide functionality for creating
+ * custom field categories and inserting custom field definitions using
+ * the Moodle core_customfield API.
  *
  * @package     tool_wbinstaller
  * @author      Jacob Viertel
- * @copyright  2023 Wunderbyte GmbH
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright   2024 Wunderbyte GmbH
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class customfieldsInstaller extends wbInstaller {
-    /** @var \core_customfield\handler Matching the course ids from the old => new. */
+    /** @var \core_customfield\handler|null The custom field handler instance for the current category. */
     public $handler;
 
     /**
-     * Entities constructor.
-     * @param array $recipe
+     * Constructor for the customfieldsInstaller.
+     *
+     * Initializes the installer with the given recipe configuration,
+     * sets the progress counter to zero, and initializes the handler to null.
+     *
+     * @param array $recipe Array of custom field category definitions, each containing fields.
      */
     public function __construct($recipe) {
         $this->recipe = $recipe;
@@ -48,24 +60,35 @@ class customfieldsInstaller extends wbInstaller {
     }
 
     /**
-     * Exceute the installer.
-     * @param string $extractpath
-     * @param \tool_wbinstaller\wbCheck $parent
-     * @return int
+     * Execute the custom fields installation process.
+     *
+     * Iterates over all custom field category definitions in the recipe. For each
+     * category, creates or retrieves the category, then processes each field definition.
+     * Skips fields that already exist (by shortname) and reports success or error feedback.
+     *
+     * @param string $extractpath The base extraction path of the installer package (unused).
+     * @param \tool_wbinstaller\wbCheck|null $parent The parent installer instance (unused).
+     * @return int Returns 1 on completion.
      */
     public function execute($extractpath, $parent = null) {
         global $DB;
         $customfieldfields = $DB->get_records('customfield_field', null, null, 'shortname');
+
         foreach ($this->recipe as $customfields) {
+            // Create or retrieve the custom field category.
             $categoryid = $this->upload_category($customfields);
+
             foreach ($customfields['fields'] as $customfield) {
                 if (!$categoryid) {
+                    // Category creation failed — report error for all fields.
                     $this->feedback['needed'][$customfields['name']]['error'][] =
                       get_string('customfieldfailupload', 'tool_wbinstaller');
                 } else if (isset($customfieldfields[$customfield['shortname']])) {
+                    // Field already exists — report as duplicate.
                     $this->feedback['needed'][$customfields['name']]['success'][] =
                     get_string('customfieldduplicate', 'tool_wbinstaller', $customfield['shortname']);
                 } else {
+                    // Create the new custom field.
                     try {
                         $this->upload_fieldset($customfield, $categoryid);
                         $this->feedback['needed'][$customfields['name']]['success'][] =
@@ -84,13 +107,20 @@ class customfieldsInstaller extends wbInstaller {
     }
 
     /**
-     * Upload the category.
-     * @param array $customfields
-     * @return int
+     * Create or retrieve a custom field category.
+     *
+     * Looks up an existing category by name. If not found, creates a new one
+     * using the appropriate custom field handler. Supports custom handler namespaces
+     * defined in the recipe configuration.
+     *
+     * @param array $customfields The category definition array with keys 'name', 'component', 'area', and optional 'namespace'.
+     * @return int The category ID (existing or newly created).
      */
     public function upload_category($customfields) {
         global $DB;
         $category = $DB->get_record('customfield_category', ['name' => $customfields['name']], 'id');
+
+        // Determine the handler namespace (default to core_customfield).
         $namespace = "\\core_customfield\\handler";
         if (
             isset($customfields['namespace']) &&
@@ -98,10 +128,12 @@ class customfieldsInstaller extends wbInstaller {
         ) {
             $namespace = $customfields['namespace'];
         }
+
         $this->handler = $namespace::get_handler(
             $customfields['component'],
             $customfields['area']
         );
+
         if ($category) {
             return $category->id;
         }
@@ -109,9 +141,14 @@ class customfieldsInstaller extends wbInstaller {
     }
 
     /**
-     * Upload the fieldset.
-     * @param array $fieldset
-     * @param int $categoryid
+     * Create a single custom field within a category.
+     *
+     * Instantiates a new field controller, sets the shortname, name, and config data,
+     * then saves the field configuration using the custom field handler.
+     *
+     * @param array $fieldset The field definition array with keys 'type', 'shortname', 'name', 'configdata', etc.
+     * @param int $categoryid The ID of the custom field category to which the field belongs.
+     * @return void
      */
     public function upload_fieldset($fieldset, $categoryid) {
         $record = new \stdClass();
@@ -134,13 +171,19 @@ class customfieldsInstaller extends wbInstaller {
     }
 
     /**
-     * Exceute the installer check.
-     * @param string $extractpath
-     * @param \tool_wbinstaller\wbCheck $parent
+     * Pre-check the custom fields before execution.
+     *
+     * Iterates over all custom field definitions and checks whether each field
+     * already exists by shortname. Reports duplicates and new fields accordingly.
+     *
+     * @param string $extractpath The base extraction path of the installer package (unused).
+     * @param \tool_wbinstaller\wbCheck $parent The parent installer instance (unused).
+     * @return void
      */
     public function check($extractpath, $parent) {
         global $DB;
         $customfieldfields = $DB->get_records('customfield_field', null, null, 'shortname');
+
         foreach ($this->recipe as $customfields) {
             foreach ($customfields['fields'] as $customfield) {
                 if (isset($customfieldfields[$customfield['shortname']])) {

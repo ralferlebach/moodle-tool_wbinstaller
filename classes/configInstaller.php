@@ -15,31 +15,43 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Entities Class to display list of entity records.
+ * Configuration installer for setting plugin config values during installation.
+ *
+ * This class handles importing and applying Moodle plugin configuration settings
+ * as defined in the Wunderbyte installer recipe. It supports both execution
+ * (applying config values) and pre-checking (verifying config fields exist).
  *
  * @package     tool_wbinstaller
  * @author      Jacob Viertel
- * @copyright  2023 Wunderbyte GmbH
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright   2024 Wunderbyte GmbH
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace tool_wbinstaller;
 
 /**
- * Class tool_wbinstaller
+ * Installer class for Moodle plugin configuration settings.
+ *
+ * Extends the base wbInstaller to provide functionality for reading
+ * configuration values from the recipe and applying them to the
+ * corresponding Moodle plugin config entries via set_config().
  *
  * @package     tool_wbinstaller
  * @author      Jacob Viertel
- * @copyright  2023 Wunderbyte GmbH
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright   2024 Wunderbyte GmbH
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class configInstaller extends wbInstaller {
-    /** @var \core_customfield\handler Matching the course ids from the old => new. */
+    /** @var \core_customfield\handler|null Custom field handler instance (unused in this installer). */
     public $handler;
 
     /**
-     * Entities constructor.
-     * @param array $recipe
+     * Constructor for the configInstaller.
+     *
+     * Initializes the installer with the given recipe configuration,
+     * sets the progress counter to zero, and initializes the handler to null.
+     *
+     * @param array $recipe Associative array keyed by plugin name, each containing config field => value pairs.
      */
     public function __construct($recipe) {
         $this->recipe = $recipe;
@@ -48,10 +60,15 @@ class configInstaller extends wbInstaller {
     }
 
     /**
-     * Exceute the installer.
-     * @param string $extractpath
-     * @param \tool_wbinstaller\wbCheck $parent
-     * @return int
+     * Execute the configuration installation process.
+     *
+     * Iterates over all plugins and their configuration fields defined in the recipe.
+     * For each field, checks whether the configuration entry already exists in Moodle.
+     * If found, the value is updated via set_config(). If not found, an error is reported.
+     *
+     * @param string $extractpath The base extraction path of the installer package (unused).
+     * @param \tool_wbinstaller\wbCheck|null $parent The parent installer instance (unused).
+     * @return int Returns 1 on completion.
      */
     public function execute($extractpath, $parent = null) {
         global $DB;
@@ -59,10 +76,12 @@ class configInstaller extends wbInstaller {
             foreach ($configfields as $configfield => $value) {
                 $currentvalue = get_config($pluginname, $configfield);
                 if ($currentvalue !== false) {
+                    // Config field exists — update it with the recipe value.
                     set_config($configfield, $value, $pluginname);
                     $this->feedback['needed'][$pluginname]['success'][] =
                         get_string('configvalueset', 'tool_wbinstaller', $configfield);
                 } else {
+                    // Config field does not exist — report error.
                     $this->feedback['needed'][$pluginname]['error'][] =
                       get_string('confignotfound', 'tool_wbinstaller', $configfield);
                 }
@@ -72,9 +91,15 @@ class configInstaller extends wbInstaller {
     }
 
     /**
-     * Exceute the installer check.
-     * @param string $extractpath
-     * @param \tool_wbinstaller\wbCheck $parent
+     * Pre-check the configuration settings before execution.
+     *
+     * Iterates over all plugins and their configuration fields defined in the recipe.
+     * For each field, checks whether the configuration entry exists in Moodle.
+     * Reports success if found, or a warning if the config field is missing.
+     *
+     * @param string $extractpath The base extraction path of the installer package (unused).
+     * @param \tool_wbinstaller\wbCheck|null $parent The parent installer instance (unused).
+     * @return int Returns 1 on completion.
      */
     public function check($extractpath, $parent = null) {
         global $DB;

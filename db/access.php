@@ -15,31 +15,38 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin capabilities are defined here.
+ * Plugin capability definitions for the Wunderbyte installer tool.
+ *
+ * Defines the capabilities required by the tool_wbinstaller plugin.
+ * The 'caninstall' capability controls access to the recipe installation
+ * functionality, while 'canexport' controls access to the course export feature.
+ * Both capabilities are granted to the manager and teacher archetypes by default.
  *
  * @package     tool_wbinstaller
  * @author      Jacob Viertel
- * @copyright  2023 Wunderbyte GmbH
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright   2024 Wunderbyte GmbH <info@wunderbyte.at>
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = [
-        'tool/wbinstaller:caninstall' => [
-            'captype' => 'write',
-            'contextlevel' => CONTEXT_SYSTEM,
-            'archetypes' => [
-                'manager' => CAP_ALLOW,
-                'teacher' => CAP_ALLOW,
-            ],
+    // Capability to install recipes via the Wunderbyte installer.
+    'tool/wbinstaller:caninstall' => [
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
         ],
-        'tool/wbinstaller:canexport' => [
-            'captype' => 'write',
-            'contextlevel' => CONTEXT_SYSTEM,
-            'archetypes' => [
-                'manager' => CAP_ALLOW,
-                'teacher' => CAP_ALLOW,
-            ],
+    ],
+    // Capability to export courses as installer recipes.
+    'tool/wbinstaller:canexport' => [
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
         ],
-    ];
+    ],
+];

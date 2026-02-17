@@ -17,6 +17,10 @@
 /**
  * Plugin upgrade steps are defined here.
  *
+ * This file contains the upgrade function that is called when the plugin
+ * version is incremented. It manages database schema changes such as
+ * creating the tool_wbinstaller_install table for tracking installation progress.
+ *
  * @package     tool_wbinstaller
  * @category    upgrade
  * @copyright   2024 Wunderbyte GmbH <info@wunderbyte.at>
@@ -26,18 +30,21 @@
 /**
  * Execute tool_wbinstaller upgrade from the given old version.
  *
- * @param int $oldversion
- * @return bool
+ * Applies incremental database schema changes depending on the currently
+ * installed version. Creates the tool_wbinstaller_install table if upgrading
+ * from a version prior to 2024061004.
+ *
+ * For further information please read {@link https://docs.moodle.org/dev/Upgrade_API}.
+ * Documentation for the XMLDB Editor can be found at {@link https://docs.moodle.org/dev/XMLDB_editor}.
+ *
+ * @param int $oldversion The version number of the currently installed plugin.
+ * @return bool Always returns true on successful upgrade.
  */
 function xmldb_tool_wbinstaller_upgrade($oldversion) {
     global $DB;
 
     $dbman = $DB->get_manager();
 
-    // For further information please read {@link https://docs.moodle.org/dev/Upgrade_API}.
-    //
-    // You will also have to create the db/install.xml file by using the XMLDB Editor.
-    // Documentation for the XMLDB Editor can be found at {@link https://docs.moodle.org/dev/XMLDB_editor}.
     if ($oldversion < 2024061004) {
         // Define table tool_wbinstaller_install to be created.
         $table = new xmldb_table('tool_wbinstaller_install');
@@ -51,10 +58,10 @@ function xmldb_tool_wbinstaller_upgrade($oldversion) {
         $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, null, null, '0');
         $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, null, null, '0');
 
-        // Adding keys to table tool_wbinstaller_install.
+        // Adding the primary key to table tool_wbinstaller_install.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
 
-        // Conditionally launch create table for tool_wbinstaller_install.
+        // Conditionally launch create table only if it does not already exist.
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
@@ -62,5 +69,6 @@ function xmldb_tool_wbinstaller_upgrade($oldversion) {
         // Wbinstaller savepoint reached.
         upgrade_plugin_savepoint(true, 2024061004, 'tool', 'wbinstaller');
     }
+
     return true;
 }

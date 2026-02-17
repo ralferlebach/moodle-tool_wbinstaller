@@ -15,7 +15,11 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Code to be executed after the plugin's database scheme has been installed is defined here.
+ * Post-installation script for the tool_wbinstaller plugin.
+ *
+ * This file is executed after the plugin's database schema has been installed.
+ * It creates the 'installmanager' role with appropriate context levels and
+ * capabilities, and sets default plugin configuration values.
  *
  * @package     tool_wbinstaller
  * @category    upgrade
@@ -24,13 +28,22 @@
  */
 
 /**
- * Custom code to be run on installing the plugin.
+ * Custom code to be run on first installation of the plugin.
+ *
+ * Creates the 'installmanager' role if it does not already exist, assigns it
+ * to the system context level, grants the required capabilities
+ * (caninstall, canexport), and inserts default configuration settings
+ * into the config_plugins table.
+ *
+ * @return bool Always returns true on successful installation.
  */
 function xmldb_tool_wbinstaller_install() {
     global $DB;
 
+    // Check whether the 'installmanager' role already exists.
     $role = $DB->get_record('role', ['shortname' => 'installmanager']);
     if (empty($role->id)) {
+        // Determine the next available sort order for the new role.
         $sql = "SELECT MAX(sortorder)+1 AS id FROM {role}";
         $max = $DB->get_record_sql($sql, []);
 
@@ -44,12 +57,13 @@ function xmldb_tool_wbinstaller_install() {
         $role->id = $DB->insert_record('role', $role);
     }
 
-    // Ensure, that this role is assigned in the required context levels.
+    // Ensure the role is assignable at the system context level.
     $chk = $DB->get_record('role_context_levels', ['roleid' => $role->id, 'contextlevel' => CONTEXT_SYSTEM]);
     if (empty($chk->id)) {
         $DB->insert_record('role_context_levels', ['roleid' => $role->id, 'contextlevel' => CONTEXT_SYSTEM]);
     }
-    // Ensure, that this role has the required capabilities.
+
+    // Grant the required capabilities to the installmanager role.
     $ctx = \context_system::instance();
     $caps = [
         'tool/wbinstaller:caninstall',
@@ -74,7 +88,7 @@ function xmldb_tool_wbinstaller_install() {
         }
     }
 
-    // Set detault settings.
+    // Insert default plugin configuration settings.
     $defaultsettings = [
         'apitoken' => '',
     ];
@@ -89,5 +103,6 @@ function xmldb_tool_wbinstaller_install() {
             $DB->insert_record('config_plugins', $record);
         }
     }
+
     return true;
 }

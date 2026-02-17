@@ -15,12 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Entities Class to display list of entity records.
+ * Question installer for importing questions from Moodle XML files.
+ *
+ * This class handles the import of question bank questions from XML files
+ * using Moodle's qformat_xml import functionality as part of the Wunderbyte
+ * installer process.
  *
  * @package     tool_wbinstaller
  * @author      Jacob Viertel
- * @copyright  2023 Wunderbyte GmbH
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright   2024 Wunderbyte GmbH
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace tool_wbinstaller;
@@ -30,31 +34,47 @@ use context_course;
 use Exception;
 
 /**
- * Class tool_wbinstaller
+ * Installer class for importing Moodle XML question files into the question bank.
+ *
+ * Extends the base wbInstaller to provide functionality for discovering XML
+ * question files, creating qformat_xml importers, and executing the question
+ * import process.
  *
  * @package     tool_wbinstaller
  * @author      Jacob Viertel
- * @copyright  2023 Wunderbyte GmbH
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright   2024 Wunderbyte GmbH
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class questionsInstaller extends wbInstaller {
+
     /**
-     * Entities constructor.
-     * @param string $recipe
+     * Constructor for the questionsInstaller.
+     *
+     * Initializes the installer with the given recipe configuration
+     * and sets the progress counter to zero.
+     *
+     * @param string $recipe The recipe configuration array containing the questions path.
      */
     public function __construct($recipe) {
         $this->recipe = $recipe;
         $this->progress = 0;
     }
+
     /**
-     * Exceute the installer.
-     * @param string $extractpath
-     * @param \tool_wbinstaller\wbCheck $parent
-     * @return int
+     * Execute the question import process.
+     *
+     * Iterates over all XML files in the questions directory, creates a
+     * qformat_xml importer for each file, and executes the import process.
+     * Reports success or error feedback for each file.
+     *
+     * @param string $extractpath The base extraction path of the installer package.
+     * @param \tool_wbinstaller\wbCheck|null $parent The parent installer instance.
+     * @return int Returns 1 on completion.
      */
     public function execute($extractpath, $parent = null) {
         $this->parent = $parent;
         $questionspath = $extractpath . $this->recipe['path'];
+
         foreach (glob("$questionspath/*") as $questionfile) {
             try {
                 $qformat = $this->create_qformat($questionfile, 1);
@@ -69,9 +89,14 @@ class questionsInstaller extends wbInstaller {
     }
 
     /**
-     * Exceute the installer.
-     * @param string $extractpath
-     * @param \tool_wbinstaller\wbCheck $parent
+     * Pre-check the question files before execution.
+     *
+     * Scans the questions directory for XML files and reports each
+     * found file as a success feedback entry.
+     *
+     * @param string $extractpath The base extraction path of the installer package.
+     * @param \tool_wbinstaller\wbCheck $parent The parent installer instance.
+     * @return void
      */
     public function check($extractpath, $parent) {
         $questionspath = $extractpath . $this->recipe['path'];
@@ -82,14 +107,16 @@ class questionsInstaller extends wbInstaller {
     }
 
     /**
-     * Create a new qformat object so that we can import questions.
+     * Create a qformat_xml object configured for importing a question file.
      *
-     * NOTE: copied from qformat_xml_import_export_test.php
+     * Sets up the XML question format importer with the appropriate course context,
+     * file paths, grade matching behaviour, and category/context import settings.
      *
-     * Create object qformat_xml for test.
-     * @param string $filename with name for testing file.
-     * @param int $courseid
-     * @return \qformat_xml XML question format object.
+     * NOTE: Import configuration pattern adapted from core qformat_xml_import_export_test.php.
+     *
+     * @param string $filename The absolute path to the XML question file.
+     * @param int $courseid The course ID to use as the import context.
+     * @return \qformat_xml The configured XML question format importer object.
      */
     private function create_qformat($filename, $courseid) {
         global $CFG;
