@@ -124,10 +124,12 @@ class questionsInstaller extends wbInstaller {
         require_once($CFG->dirroot . '/question/format/xml/format.php');
         require_once($CFG->dirroot . '/question/format.php');
 
+        $course = get_course($courseid);
+
         $qformat = new \qformat_xml();
         $qformat->setContexts((new question_edit_contexts(context_course::instance($courseid)))->all());
         $qformat->setCourse($course);
-        $qformat->setFilename(__DIR__ . '/../fixtures/' . $filename);
+        // $qformat->setFilename(__DIR__ . '/../fixtures/' . $filename);
         $qformat->setRealfilename($filename);
         $qformat->setMatchgrades('error');
         $qformat->setCatfromfile(1);
