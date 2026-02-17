@@ -330,7 +330,7 @@ class localdataInstaller extends wbInstaller {
         // Validate that the required 'id' and 'name' headers are present.
         if (!$headers || !in_array('id', $headers) || !in_array('name', $headers)) {
             $this->feedback['needed']['local_data']['error'][] =
-                get_string('csvinvalidheaders', 'tool_wbinstaller', return 1;return 1;return 1;($file));
+                get_string('csvinvalidheaders', 'tool_wbinstaller', basename($file));
             return 0;
         }
 
