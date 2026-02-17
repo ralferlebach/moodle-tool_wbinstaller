@@ -308,6 +308,7 @@ class localdataInstaller extends wbInstaller {
     private function process_csv_file($file) {
         global $DB;
 
+        $this->parent->matchingids['catscales'] = [];
         // Initialize the CSV reader and load the file contents.
         try {
             $csvoptions = $this->recipe['matcher'];
@@ -315,25 +316,26 @@ class localdataInstaller extends wbInstaller {
             $csvreader = new \csv_import_reader($iid, 'wbinstaller');
             $csvreader->load_csv_content(
                 file_get_contents($file),
-                $csvoptions['delimiter_name'] ?? 'semicolon',
-                $csvoptions['encoding'] ?? null
+                $csvoptions['encoding'] ?? '',
+                $csvoptions['delimiter_name'] ?? 'semicolon'
             );
-            $csvreader->init();
-            $headers = $csvreader->get_columns();
         } catch (\Exception $e) {
             $this->feedback['needed']['local_data']['error'][] =
                 get_string('csvnotreadable', 'tool_wbinstaller', basename($file));
+            return false;
         }
 
+        $headers = $csvreader->get_columns();
+        $csvreader->init();
         // Validate that the required 'id' and 'name' headers are present.
         if (!$headers || !in_array('id', $headers) || !in_array('name', $headers)) {
             $this->feedback['needed']['local_data']['error'][] =
                 get_string('csvinvalidheaders', 'tool_wbinstaller', basename($file));
+            return false;
         }
 
         // Iterate over each CSV row and build the scale ID translation map.
         $row = 1;
-        $this->parent->matchingids['catscales'] = [];
 
         while ($data = $csvreader->next()) {
             $row++;
@@ -341,8 +343,11 @@ class localdataInstaller extends wbInstaller {
             // Map row values to column headers and validate required fields.
             $data = array_combine($headers, $data);
             if (($data === false) || empty($data['id']) || empty($data['name'])) {
+                $msgparams = new stdClass();
+                $msgparams->line = $row;
+                $msgparams->file = basename($file);
                 $this->feedback['needed']['local_data']['error'][] =
-                    get_string('csvmissingfields', 'tool_wbinstaller', ['line' => $row, 'file' => basename($file)]);
+                    get_string('csvmissingfields', 'tool_wbinstaller', $msgparams);
                 continue;
             }
 
