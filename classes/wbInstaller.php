@@ -48,7 +48,6 @@ use ZipArchive;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class wbInstaller {
-
     /** @var int ID of the installation status database record. */
     public $dbid;
 

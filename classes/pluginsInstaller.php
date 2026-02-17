@@ -118,7 +118,10 @@ class pluginsInstaller extends wbInstaller {
                             $install = $this->check_plugin_compability($gitzipurl, $type, true);
                             if ($install != 2) {
                                 $installable = $this->download_install_plugins_testing(
-                                    $gitzipurl, $type, $installer, $install
+                                    $gitzipurl,
+                                    $type,
+                                    $installer,
+                                    $install
                                 );
                                 if (isset($installable->component)) {
                                     $installables[] = $installable->component;

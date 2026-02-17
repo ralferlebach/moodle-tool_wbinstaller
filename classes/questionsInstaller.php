@@ -46,7 +46,6 @@ use Exception;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class questionsInstaller extends wbInstaller {
-
     /**
      * Constructor for the questionsInstaller.
      *
@@ -129,7 +128,6 @@ class questionsInstaller extends wbInstaller {
         $qformat = new \qformat_xml();
         $qformat->setContexts((new question_edit_contexts(context_course::instance($courseid)))->all());
         $qformat->setCourse($course);
-        // $qformat->setFilename(__DIR__ . '/../fixtures/' . $filename);
         $qformat->setRealfilename($filename);
         $qformat->setMatchgrades('error');
         $qformat->setCatfromfile(1);

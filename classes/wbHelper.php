@@ -43,7 +43,6 @@ use ZipArchive;
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class wbHelper {
-
     /**
      * Recursively clean the temporary installation directory.
      *

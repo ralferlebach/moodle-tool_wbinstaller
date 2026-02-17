@@ -44,7 +44,7 @@ $string['coursessuccess'] = 'Kurs {$a->courseshortname} erfolgreich auf der Kate
 $string['coursetypenotfound'] = 'STRING coursetypenotfound';
 $string['csvinvalid'] = 'CSV-Datei {$a} konnte nicht korrekt hochgeladen werden.';
 $string['csvinvalidheaders'] = 'Kopfzeilen der CSV-Datei {$a} nicht ausreichend.';
-$string['csvmissingfields'] = 'Unvollständige Daten in Zeile {$a->line} in CSV-Datei {$a->file} übersprungen.'; 
+$string['csvmissingfields'] = 'Unvollständige Daten in Zeile {$a->line} in CSV-Datei {$a->file} übersprungen.';
 $string['csvnotreadable'] = 'CSV-Datei {$a} kann nicht gelesen werden.';
 $string['customcategoryduplicate'] = 'Benutzerdefinierter Kategoriename existiert bereits!';
 $string['customfieldduplicate'] = 'Benutzerdefiniertes Feld {$a} Kurzname existiert bereits!';
@@ -147,4 +147,3 @@ $string['warning_description'] = 'Während der Installation sind einige Fehler a
 $string['wbinstaller:canexport'] = 'WB Installer: Benutzer/in darf exportieren';
 $string['wbinstaller:caninstall'] = 'WB Installer: Benutzer/in darf installieren';
 $string['wbinstallerroledescription'] = 'Beschreibung der Rolle wbinstaller';
-

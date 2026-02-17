@@ -57,7 +57,6 @@ require_login();
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class localdataInstaller extends wbInstaller {
-
     /** @var bool Flag indicating whether the current data row should be uploaded. */
     public $uploaddata;
 
@@ -256,7 +255,7 @@ class localdataInstaller extends wbInstaller {
                         // Use the resolved new value if directly available.
                         if (isset($newdata->$key)) {
                             $record->$key = $newdata->$key;
-                        } elseif ($this->recipe['translator']['changingcolumn'][$key]['nested']) {
+                        } else if ($this->recipe['translator']['changingcolumn'][$key]['nested']) {
                             // Translate nested JSON structures (e.g., adaptive quiz settings).
                             $record->$key = $this->update_nested_json(
                                 $rowcol,
@@ -266,7 +265,7 @@ class localdataInstaller extends wbInstaller {
                                 $coursemoduleid
                             );
                         }
-                    } elseif ($key != 'id') {
+                    } else if ($key != 'id') {
                         // Copy non-ID, non-changing fields directly.
                         $record->$key = $rowcol;
                     }
@@ -278,7 +277,7 @@ class localdataInstaller extends wbInstaller {
                     $this->feedback['needed']['local_data']['warning'][] =
                         get_string('localdatauploadduplicate', 'tool_wbinstaller', $fileinfo);
                     break;
-                } elseif ($this->uploaddata) {
+                } else if ($this->uploaddata) {
                     // Insert the new record and store the old-to-new ID mapping.
                     $newid = $DB->insert_record($fileinfo, $record);
                     $this->matchingids['testid'][$row['id']] = $newid;
@@ -428,13 +427,13 @@ class localdataInstaller extends wbInstaller {
                 if ($key == 'catquiz_catscales') {
                     // Replace the top-level catscale reference with the new scale ID.
                     $json[$key] = $scaleid;
-                } elseif ($key == 'module') {
+                } else if ($key == 'module') {
                     // Replace the module reference with the new module ID.
                     $json[$key] = $moduleid;
-                } elseif ($key == 'update' || $key == 'coursemodule') {
+                } else if ($key == 'update' || $key == 'coursemodule') {
                     // Replace course module references with the new course module ID.
                     $json[$key] = $coursemoduleid;
-                } elseif (str_contains($key, $changingkey)) {
+                } else if (str_contains($key, $changingkey)) {
                     // Extract the old scale ID from the key suffix and translate it.
                     $postfix = str_replace($changingkey . '_', '', $key);
                     $matches = explode('_', $postfix);
@@ -579,7 +578,7 @@ class localdataInstaller extends wbInstaller {
                 return 0;
             }
         }
-        
+
         if (count($matcher) == 0) {
             $this->uploaddata = false;
             return 0;
