@@ -307,7 +307,10 @@ class localdataInstaller extends wbInstaller {
     private function process_csv_file($file) {
         global $DB;
 
-        $this->parent->matchingids['catscales'] = [];
+        if (!isset($this->parent->matchingids['catscales'])) {
+            $this->parent->matchingids['catscales'] = [];
+        }
+        
         // Initialize the CSV reader and load the file contents.
         try {
             $csvoptions = $this->recipe['matcher'];
