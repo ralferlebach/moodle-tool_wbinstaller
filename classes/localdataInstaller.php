@@ -315,8 +315,8 @@ class localdataInstaller extends wbInstaller {
             $csvreader = new \csv_import_reader($iid, 'wbinstaller');
             $csvreader->load_csv_content(
                 file_get_contents($file),
-                'delimiter_name' => $csvoptions['delimiter_name'] ?? 'semicolon',
-                'encoding' => $csvoptions['encoding'] ?? null
+                $csvoptions['delimiter_name'] ?? 'semicolon',
+                $csvoptions['encoding'] ?? null
             );
             $csvreader->init();
             $headers = $csvreader->get_columns();
