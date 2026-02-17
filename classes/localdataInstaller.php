@@ -19,7 +19,7 @@
  *
  * @package     tool_wbinstaller
  * @author      Jacob Viertel
- * @copyright  2023 Wunderbyte GmbH
+ * @copyright  2025 Wunderbyte GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,14 +28,15 @@ namespace tool_wbinstaller;
 use local_catquiz\data\dataapi;
 use stdClass;
 
-require_once(__DIR__.'/../../../../config.php');
-require_once(__DIR__.'/../../../../lib/setup.php');
+require_once(__DIR__ . '/../../../../config.php');
+require_once(__DIR__ . '/../../../../lib/setup.php');
 global $CFG;
-require_once($CFG->libdir.'/filelib.php');
-require_once($CFG->libdir.'/moodlelib.php');
-require_once($CFG->dirroot.'/course/lib.php');
-require_once($CFG->dirroot.'/backup/util/includes/backup_includes.php');
-require_once($CFG->dirroot.'/backup/util/includes/restore_includes.php');
+require_once($CFG->libdir . '/filelib.php');
+require_once($CFG->libdir . '/moodlelib.php');
+require_once($CFG->libdir . '/csvlib.class.php');
+require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
+require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_login();
 
 /**
@@ -46,7 +47,8 @@ require_login();
  * @copyright  2023 Wunderbyte GmbH
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class localdataInstaller extends wbInstaller {
+class localdataInstaller extends wbInstaller
+{
     /** @var bool Check if data will be uploaded */
     public $uploaddata;
     /** @var \tool_wbinstaller\wbCheck Parent matching ids. */
@@ -56,29 +58,38 @@ class localdataInstaller extends wbInstaller {
      * Entities constructor.
      * @param mixed $recipe
      */
-    public function __construct($recipe) {
+    public function __construct($recipe)
+    {
         $this->recipe = $recipe;
         $this->progress = 0;
         $this->uploaddata = true;
     }
 
     /**
-     * Exceute the installer.
+     * Execute the installer.
      * @param string $extractpath
      * @param \tool_wbinstaller\wbCheck $parent
      * @return string
      */
-    public function execute($extractpath, $parent = null) {
+    public function execute($extractpath, $parent = null)
+    {
         $this->parent = $parent;
-        $coursespath = $extractpath . $this->recipe['path'];
-        foreach (glob("$coursespath/*") as $coursefile) {
+        $path = $extractpath . $this->recipe['path'];
+
+        // Check for csv data for id matching.
+        foreach (glob("$path/*.csv") as $csvfile) {
+            $this->process_csv_file($csvfile);
+        }
+
+        foreach (glob("$path/*.json") as $jsonfile) {
             try {
-                $this->upload_csv_file($coursefile);
+                $this->upload_json_file($jsonfile);
             } catch (\Exception $e) {
                 $this->feedback['needed']['local_data']['error'][] =
-                  get_string('jsoninvalid', 'tool_wbinstaller', $coursefile);
+                  get_string('jsoninvalid', 'tool_wbinstaller', $jsonfile);
             }
         }
+
         return '1';
     }
 
@@ -88,26 +99,39 @@ class localdataInstaller extends wbInstaller {
      * @param \tool_wbinstaller\wbCheck $parent
      * @return string
      */
-    public function check($extractpath, $parent) {
+    public function check($extractpath, $parent)
+    {
         $this->parent = $parent;
-        $coursespath = $extractpath . $this->recipe['path'];
-        foreach (glob("$coursespath/*") as $coursefile) {
-            $filenameproperties = basename($coursefile);
-            $fileinfo = pathinfo($filenameproperties, PATHINFO_FILENAME);
-            $jsondata = file_get_contents($coursefile);
+        $path = $extractpath . $this->recipe['path'];
+
+        // Check for json local data to be installed.
+        foreach (glob("$path/*.json") as $jsonfile) {
+            $filename = basename($jsonfile);
+            $fileinfo = pathinfo($filename, PATHINFO_FILENAME);
+            $jsondata = file_get_contents($jsonfile);
             $decodeddata = json_decode($jsondata, true);
             $this->process_nested_json($decodeddata);
             $this->feedback['needed']['local_data']['success'][] =
                 get_string('newlocaldatafilefound', 'tool_wbinstaller', $fileinfo);
         }
+        
+        // Check for csv data for id matching.
+        foreach (glob("$path/*.csv") as $csvfile) {
+            $filename = basename($csvfile);
+            $fileinfo = pathinfo($filename, PATHINFO_FILENAME);
+            $this->feedback['needed']['local_data']['success'][] =
+                get_string('newlocaldatafilefound', 'tool_wbinstaller', $fileinfo);
+        }
+
         return '1';
     }
 
     /**
-     * Recursively process nested JSON objects.
+     * Process nested JSON objects.
      * @param array $entries
      */
-    protected function process_nested_json($entries) {
+    protected function process_nested_json($entries)
+    {
         foreach ($entries as $entry) {
             if (isset($entry['id'])) {
                 $this->matchingids['testid'][$entry['id']] = $entry['id'];
@@ -126,38 +150,40 @@ class localdataInstaller extends wbInstaller {
     }
 
     /**
-     * Instal a single course.
-     * @param string $coursefile
+     * Install a single course.
+     * @param string $file
      * @return int
      */
-    private function upload_csv_file($coursefile) {
+    private function upload_json_file($file)
+    {
         global $DB;
 
-        $filenameproperties = basename($coursefile);
-        $fileinfo = pathinfo($filenameproperties, PATHINFO_FILENAME);
+        $filename = basename($file);
+        $fileinfo = pathinfo($filename, PATHINFO_FILENAME);
 
         // Ensure the file is readable and accessible.
-        if (!is_readable($coursefile)) {
+        if (!is_readable($file)) {
             $this->feedback['needed']['local_data']['error'][] =
                 get_string('csvnotreadable', 'tool_wbinstaller', $fileinfo);
         } else {
-            $filecontents = file_get_contents($coursefile);
+            $filecontents = file_get_contents($file);
             $jsondata = json_decode($filecontents, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
                 $this->feedback['needed']['local_data']['error'][] =
                     get_string('jsoninvalid', 'tool_wbinstaller', $fileinfo);
-                return 0;
+                return false;
             }
+
             foreach ($jsondata as $row) {
                 $this->uploaddata = true;
                 $record = new stdClass();
-                $newdata = new stdClass();
+
                 if (isset($this->parent->matchingids['courses']['courses'][$row['courseid']])) {
                     $newdata = $DB->get_record_sql(
                         $this->recipe['translator']['sql'],
                         [
-                          'id' => $this->parent->matchingids['courses']['courses'][$row['courseid']],
+                          'componentid' => $this->parent->matchingids['courses']['components'][$row['componentid']],
                         ]
                     );
                     if (!$newdata) {
@@ -167,40 +193,39 @@ class localdataInstaller extends wbInstaller {
                     }
                 }
 
-                if (isset($this->recipe['translator']['catscalename'])) {
-                    $parentscaleid = $DB->get_record(
-                        'local_catquiz_catscales',
-                        ['name' => $this->recipe['translator']['catscalename']],
-                        'id'
-                    );
-                    $newdata->catscaleid = $parentscaleid->id;
-                }
-                $position = strpos($row['component'], '_');
-                $moudlename = substr($row['component'], $position + 1);
-                $moudleid = $DB->get_field('modules', 'id', ['name' => $moudlename]);
+                // Set the right CAT scale.
+                $newdata->catscaleid = 
+                    $this->parent->matchingids['catscales'][$row['catscaleid']];
+                             
+                $modulename = substr($row['component'], strpos($row['component'], '_') + 1);
+                $moduleid = $DB->get_field('modules', 'id', ['name' => $modulename]);
+                
                 $cm = get_coursemodule_from_instance(
-                    'adaptivequiz',
+                    $modulename,
                     $newdata->componentid,
                     $newdata->courseid
                 );
+                
                 $coursemoduleid = 0;
                 if ($cm) {
                     $coursemoduleid = $cm->id;
                 }
+                
                 foreach ($row as $key => $rowcol) {
+                
                     if (isset($this->recipe['translator']['changingcolumn'][$key])) {
                         if (isset($newdata->$key)) {
                             $record->$key = $newdata->$key;
-                        } else if ($this->recipe['translator']['changingcolumn'][$key]['nested']) {
+                        } elseif ($this->recipe['translator']['changingcolumn'][$key]['nested']) {
                             $record->$key = $this->update_nested_json(
                                 $rowcol,
                                 $newdata->catscaleid,
                                 $this->recipe['translator']['changingcolumn'][$key]['keys'],
-                                $moudleid,
+                                $moduleid,
                                 $coursemoduleid
                             );
                         }
-                    } else if ($key != 'id') {
+                    } elseif ($key != 'id') {
                         $record->$key = $rowcol;
                     }
                 }
@@ -209,7 +234,7 @@ class localdataInstaller extends wbInstaller {
                     $this->feedback['needed']['local_data']['warning'][] =
                         get_string('localdatauploadduplicate', 'tool_wbinstaller', $fileinfo);
                     break;
-                } else if ($this->uploaddata) {
+                } elseif ($this->uploaddata) {
                     $newid = $DB->insert_record($fileinfo, $record);
                     $this->matchingids['testid'][$row['id']] = $newid;
                     $this->feedback['needed']['local_data']['success'][] =
@@ -220,7 +245,77 @@ class localdataInstaller extends wbInstaller {
                 }
             }
         }
-        return 1;
+        return true;
+    }
+
+    /**
+     * Install a single course.
+     * @param string $file
+     * @return int
+     */
+    private function process_csv_file($file) {
+        global $DB;
+    
+        // Open the file and ensure it is readable and accessible.
+        try {
+            $csvoptions = $this->recipe['matcher'];
+            $iid = \csv_import_reader::get_new_iid('wbinstaller');
+            $csvreader = new \csv_import_reader($iid, 'wbinstaller');
+            $csvreader->load_csv_content(
+                file_get_contents($file), 
+                '', // $csvoptions['encoding'] ?? '',
+                'semicolon' // $csvoptions['delimiter_name'] ?? 'semicolon'
+            );
+            $csvreader->init();
+            $headers = $csvreader->get_columns();
+        } catch (\Exception $e) {
+            $this->feedback['needed']['local_data']['error'][] =
+            get_string('csvnotreadable', 'tool_wbinstaller', basename($file));
+            //return false;
+        }
+
+        // Check the headers.
+        if (!$headers || !in_array('id', $headers) || !in_array('name', $headers)) {
+            $this->feedback['needed']['local_data']['error'][] =
+                get_string('csvinvalidheaders', 'tool_wbinstaller', basename($file));
+            //return false;
+        }
+
+        // Process each row in the CSV file.
+        $row = 1;
+        $this->parent->matchingids['catscales'] = [];
+          
+        while ($data = $csvreader->next()) {
+            $row ++;
+            
+            // Map the row data to the headers and validate.
+            $data = array_combine($headers, $data);
+            if (($data === false) || empty($data['id']) || empty($data['name'])) {
+                $this->feedback['needed']['local_data']['error'][] =
+                    get_string('csvmissingfields', 'tool_wbinstaller', ['line'=>$row, 'file'=>basename($file)]);
+                continue;
+            }
+
+// Try fetching scale id from database.
+            $scaleid = $DB->get_record(
+                'local_catquiz_catscales',
+                ['name' => $data['name']],
+                'id'
+            );
+     
+            $this->parent->matchingids['catscales'][$data['id']] = $scaleid->id;
+            
+            if ($scaleid->id) {
+                $this->parent->matchingids['catscales'][$data['id']] = $scaleid->id;
+            }
+            
+        }
+                    
+        // Cleanup the CSV reader.
+        $csvreader->close();
+        $csvreader->cleanup();
+
+        return true;
     }
 
     /**
@@ -229,7 +324,8 @@ class localdataInstaller extends wbInstaller {
      * @param object $record
      * @return bool
      */
-    public function duplicatecheck($fileinfo, $record) {
+    public function duplicatecheck($fileinfo, $record)
+    {
         global $DB;
         $duplicatecheck = $this->recipe['translator']['duplicatecheck'] ?? null;
         if (
@@ -251,33 +347,34 @@ class localdataInstaller extends wbInstaller {
     /**
      * Check if course already exists.
      * @param string $json
-     * @param string $sacleid
+     * @param string $scaleid
      * @param array $keys
-     * @param int $moudleid
+     * @param int $moduleid
      * @param int $coursemoduleid
      * @return string
      */
-    public function update_nested_json($json, $sacleid, $keys, $moudleid, $coursemoduleid) {
+    public function update_nested_json($json, $scaleid, $keys, $moduleid, $coursemoduleid)
+    {
         $json = json_decode($json, true);
-        $translationsclaeids = $this->get_scale_matcher($json, $sacleid);
+        $translationscaleids = $this->get_scale_matcher($json, $scaleid);
         $newdata = [];
         foreach ($keys as $changingkey) {
             foreach ($json as $key => $value) {
                 if ($key == 'catquiz_catscales') {
-                    $json[$key] = $sacleid;
-                } else if ($key == 'module') {
-                    $json[$key] = $moudleid;
-                } else if ($key == 'update' || $key == 'coursemodule') {
+                    $json[$key] = $scaleid;
+                } elseif ($key == 'module') {
+                    $json[$key] = $moduleid;
+                } elseif ($key == 'update' || $key == 'coursemodule') {
                     $json[$key] = $coursemoduleid;
-                } else if (str_contains($key, $changingkey)) {
+                } elseif (str_contains($key, $changingkey)) {
                     $postfix = str_replace($changingkey . '_', '', $key);
                     $matches = explode('_', $postfix);
                     $oldid = (int)$matches[0];
                     if (
-                        isset($translationsclaeids[$oldid]) &&
-                        count($matches) > 1
+                        isset($translationscaleids[$oldid]) &&
+                        count($matches) >= 1
                     ) {
-                        $newid = $translationsclaeids[$oldid];
+                        $newid = $translationscaleids[$oldid];
                         $newkey = $changingkey . "_{$newid}";
                         if (isset($matches[1])) {
                             $newkey .= "_{$matches[1]}";
@@ -287,12 +384,11 @@ class localdataInstaller extends wbInstaller {
                             str_contains($key, $this->recipe['translator']['changingcourseids'])
                         ) {
                             $newdata[$newkey] = $this->course_matching($value);
-
                         } else {
                             $newdata[$newkey] = $this->translate_string_links($value);
                         }
                     } else {
-                        $newdata[$key] = $value;
+                        // $newdata[$key] = NULL;
                     }
                     unset($json[$key]);
                 }
@@ -307,7 +403,8 @@ class localdataInstaller extends wbInstaller {
      * @param mixed $value
      * @return mixed
      */
-    public function translate_string_links($value) {
+    public function translate_string_links($value)
+    {
         global $CFG;
         if (!is_string($value)) {
             return $value;
@@ -348,7 +445,8 @@ class localdataInstaller extends wbInstaller {
      * @param array $values
      * @return array
      */
-    public function course_matching($values) {
+    public function course_matching($values)
+    {
         $courseids = [];
         foreach ($values as $value) {
             if (isset($this->parent->matchingids['courses']['courses'][$value])) {
@@ -367,36 +465,37 @@ class localdataInstaller extends wbInstaller {
     /**
      * Check if course already exists.
      * @param object $json
-     * @param string $sacleid
+     * @param string $scaleid
      * @return mixed
      */
-    public function get_scale_matcher($json, $sacleid) {
-        $newscales = array_keys(dataapi::get_catscale_and_children($sacleid, true));
+    public function get_scale_matcher($json, $scaleid)
+    {
         $oldscales = [];
 
         foreach ($json as $key => $value) {
             if (preg_match('/catquiz_courses_(\d+)_\d+/', $key, $matches)) {
-                $oldscales[(int)$matches[1]] = (int)$matches[1];
+                $oldscales[] = (int)$matches[1];
             }
         }
-        sort($oldscales);
-        $scaledifference = $newscales[0] - $oldscales[0];
+
         $matcher = [];
         foreach ($oldscales as $oldscale) {
-            if (in_array($oldscale + $scaledifference, $newscales)) {
-                $matcher[$oldscale] = $oldscale + $scaledifference;
+                    
+            if (array_key_exists($oldscale, $this->parent->matchingids['catscales'])) {
+                $matcher[$oldscale] = $this->parent->matchingids['catscales'][$oldscale];
+            } else {
+                $this->feedback['needed']['local_data']['error'][] =
+                get_string('scalemismatchlocaldata', 'tool_wbinstaller', $oldscale);
             }
         }
-        if (
-            count($matcher) != count($oldscales) &&
-            count($matcher) != count($newscales)
-        ) {
+        /*
+        if (count($matcher) == 0) {
             $this->uploaddata = false;
-            $this->feedback['needed']['local_data']['error'][] =
-                get_string('scalemismatchlocaldata', 'tool_wbinstaller');
-            return 0;
+            return false;
         }
-        $this->matchingids['catscales'] = $matcher;
+        */
+        $this->parent->matchingids['catscales'] = $matcher;
+
         return $matcher;
     }
 }

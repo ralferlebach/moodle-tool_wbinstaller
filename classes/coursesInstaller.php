@@ -325,7 +325,8 @@ class coursesInstaller extends wbInstaller {
                     $query = $parsedurl['query'];
                     parse_str($query, $params);
                     $oldlinkedid = $params['id'] ?? null;
-                    if (array_key_exists($oldlinkedid, $matchingids['courses']) {
+                    
+                    if (array_key_exists($oldlinkedid, $this->matchingids['courses'])) {
                         $newid = $this->matchingids['courses'][$oldlinkedid];
                         $courseurl->externalurl = $CFG->wwwroot . '/course/view.php?id=' . $newid;
                         $DB->update_record('url', $courseurl);
