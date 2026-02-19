@@ -351,7 +351,7 @@ class coursesInstaller extends wbInstaller {
         $newcourse->shortname = 'temp_' . uniqid();
         $newcourse->category = $category->id;
         $newcourse->format = 'topics';
-        $newcourse->visible = 0;
+        $newcourse->visible = 1;
         $newcourse->timecreated = time();
         $newcourse->timemodified = time();
         $newcourse->newsitems = 0;
@@ -560,8 +560,8 @@ class coursesInstaller extends wbInstaller {
         $newcategory->descriptionformat = FORMAT_HTML;
         $newcategory->parent = $parentcategory->id ?? 0;
         $newcategory->sortorder = 0;
-        $newcategory->visible = 1;
-        $newcategory->visibleold = 1;
+        $newcategory->visible = 0;
+        $newcategory->visibleold = 0;
         $newcategory->timemodified = time();
         $newcategory->depth = 1;
         $newcategory->path = '';
@@ -577,9 +577,9 @@ class coursesInstaller extends wbInstaller {
     }
 
     /**
-     * Force a restored course to be hidden (not visible to students).
+     * Force a restored course to be visible (but in invisible category).
      *
-     * Sets the course visibility to 0 and rebuilds the course cache
+     * Sets the course visibility to 1 and rebuilds the course cache
      * to ensure the change takes effect immediately.
      *
      * @param string $courseid The ID of the course to hide.
@@ -587,7 +587,8 @@ class coursesInstaller extends wbInstaller {
      */
     protected function force_course_visibility($courseid) {
         global $DB;
-        $DB->set_field('course', 'visible', 0, ['id' => $courseid]);
+        $DB->set_field('course', 'visible', 1, ['id' => $courseid]);
+        $DB->set_field('course', 'visibleold', 1, ['id' => $courseid]);
         rebuild_course_cache($courseid, true);
     }
 
