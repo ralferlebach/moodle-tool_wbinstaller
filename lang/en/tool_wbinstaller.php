@@ -151,3 +151,6 @@ $string['wbinstallerroledescription'] = 'Description for wbinstaller role';
 $string['analyserecipe'] = 'Analyse recipe';
 $string['norecipefile'] = 'No recipe ZIP was uploaded.';
 $string['optionalpluginsheading'] = 'Optional plugins in the ZIP:';
+
+$string['recipecheckfailed'] = 'Recipe analysis failed: {$a}';
+$string['recipeinstallfailed'] = 'Recipe installation failed: {$a}';

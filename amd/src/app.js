@@ -150,10 +150,81 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         return Ajax.call([{methodname: methodname, args: args}])[0];
     };
 
+    
+    const escapeHtml = function(value) {
+        return String(value || '').replace(/[&<>"']/g, function(ch) {
+            return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}[ch];
+        });
+    };
+
+    const normaliseError = function(error) {
+        const info = {
+            title: 'Fehler bei der Rezeptverarbeitung',
+            message: 'Es ist ein unerwarteter Fehler aufgetreten.',
+            file: '',
+            line: '',
+            stacktrace: ''
+        };
+
+        if (!error) {
+            return info;
+        }
+
+        if (typeof error === 'string') {
+            info.message = error;
+            return info;
+        }
+
+        info.message = error.message || error.error || info.message;
+        info.file = error.file || '';
+        info.line = error.lineNumber || error.line || '';
+        info.stacktrace = error.stacktrace || error.debuginfo || error.stack || '';
+
+        if (error.exception && !info.stacktrace) {
+            info.stacktrace = error.exception;
+        }
+
+        if (error.errorcode && !info.file) {
+            info.file = error.errorcode;
+        }
+
+        return info;
+    };
+
+    const renderErrorDetails = function(root, selectors, details) {
+        const region = bySelector(root, selectors.feedback);
+        if (!region) {
+            return;
+        }
+        const chunks = [
+            details.message ? 'Meldung: ' + details.message : '',
+            details.file ? 'Datei: ' + details.file : '',
+            details.line ? 'Zeile: ' + details.line : '',
+            details.stacktrace ? 'Stack trace:
+' + details.stacktrace : ''
+        ].filter(Boolean);
+        region.textContent = chunks.join('
+
+');
+    };
+
+    const showErrorModal = function(details) {
+        const body = [
+            details.message ? '<p><strong>Meldung:</strong><br>' + escapeHtml(details.message) + '</p>' : '',
+            details.file ? '<p><strong>Datei:</strong><br>' + escapeHtml(details.file) + '</p>' : '',
+            details.line ? '<p><strong>Zeile:</strong><br>' + escapeHtml(details.line) + '</p>' : '',
+            details.stacktrace ? '<p><strong>Stack trace:</strong><br><pre style="white-space: pre-wrap;">' + escapeHtml(details.stacktrace) + '</pre></p>' : ''
+        ].filter(Boolean).join('');
+
+        return Notification.alert(details.title, body || escapeHtml(details.message));
+    };
+
     const handleException = function(root, selectors, error) {
+        const details = normaliseError(error);
         setBusy(root, selectors, false);
-        renderStatus(root, selectors, 'danger', error && error.message ? error.message : 'Es ist ein Fehler aufgetreten.');
-        Notification.exception(error);
+        renderStatus(root, selectors, 'danger', details.message);
+        renderErrorDetails(root, selectors, details);
+        showErrorModal(details);
     };
 
     const runCheck = function(root, selectors) {

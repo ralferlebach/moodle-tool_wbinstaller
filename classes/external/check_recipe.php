@@ -1,7 +1,7 @@
 <?php
-namespace tool_wbinstaller\external;
-
 declare(strict_types=1);
+
+namespace tool_wbinstaller\external;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -26,21 +26,38 @@ class check_recipe extends external_api {
     }
 
     public static function execute($userid, $contextid, $draftitemid): array {
+        global $USER;
+
         require_login();
-        $context = context::instance_by_id($contextid);
+        $params = self::validate_parameters(self::execute_parameters(), [
+            'userid' => $userid,
+            'contextid' => $contextid,
+            'draftitemid' => $draftitemid,
+        ]);
+
+        $context = context::instance_by_id((int)$params['contextid']);
+        self::validate_context($context);
         require_capability('tool/wbinstaller:caninstall', $context);
 
-        $filename = recipe_file::get_filename((int)$draftitemid);
-        $base64 = recipe_file::get_base64_contents((int)$draftitemid);
-        $wbcheck = new wbCheck($base64, $filename);
-        $response = $wbcheck->execute();
+        if ((int)$params['userid'] !== (int)$USER->id) {
+            throw new \moodle_exception('invaliduser');
+        }
 
-        return [
-            'feedback' => json_encode($response),
-            'filename' => $filename,
-            'optionalplugins' => json_encode(recipe_file::get_optional_plugins((int)$draftitemid)),
-            'summary' => recipe_file::build_summary((int)$draftitemid),
-        ];
+        try {
+            $filename = recipe_file::get_filename((int)$params['draftitemid']);
+            $base64 = recipe_file::get_base64_contents((int)$params['draftitemid']);
+            $wbcheck = new wbCheck($base64, $filename);
+            $response = $wbcheck->execute();
+
+            return [
+                'feedback' => json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                'filename' => $filename,
+                'optionalplugins' => json_encode(recipe_file::get_optional_plugins((int)$params['draftitemid']), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                'summary' => recipe_file::build_summary((int)$params['draftitemid']),
+            ];
+        } catch (\Throwable $e) {
+            throw new \moodle_exception('recipecheckfailed', 'tool_wbinstaller', '', $e->getMessage());
+        }
     }
 
     public static function execute_returns(): external_single_structure {
