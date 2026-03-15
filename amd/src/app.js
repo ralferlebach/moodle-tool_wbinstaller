@@ -200,12 +200,9 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             details.message ? 'Meldung: ' + details.message : '',
             details.file ? 'Datei: ' + details.file : '',
             details.line ? 'Zeile: ' + details.line : '',
-            details.stacktrace ? 'Stack trace:
-' + details.stacktrace : ''
+            details.stacktrace ? 'Stack trace:\n' + details.stacktrace : ''
         ].filter(Boolean);
-        region.textContent = chunks.join('
-
-');
+        region.textContent = chunks.join('\n\n');
     };
 
     const showErrorModal = function(details) {
