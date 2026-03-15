@@ -1,5 +1,18 @@
 define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
-    var state = {
+    const defaults = {
+        root: '#tool-wbinstaller-app',
+        draftitemid: 'input[name="recipefile"]',
+        check: '[data-action="check-recipe"]',
+        install: '[data-action="install-recipe"]',
+        optionalplugins: '[data-region="optional-plugins"]',
+        summary: '[data-region="recipe-summary"]',
+        feedback: '[data-region="feedback"]',
+        status: '[data-region="status"]',
+        loader: '[data-region="loader"]',
+        filename: '[data-region="filename"]'
+    };
+
+    const state = {
         contextid: null,
         userid: null,
         filename: '',
@@ -7,14 +20,11 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         optionalplugins: []
     };
 
-    var bySelector = function(root, selector) {
-        return root ? root.querySelector(selector) : null;
+    const bySelector = function(root, selector) {
+        return root && selector ? root.querySelector(selector) : null;
     };
 
-    var parseJson = function(value, fallback) {
-        if (typeof value !== 'string') {
-            return (typeof value === 'undefined' || value === null) ? fallback : value;
-        }
+    const parseJson = function(value, fallback) {
         try {
             return JSON.parse(value);
         } catch (e) {
@@ -22,56 +32,63 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         }
     };
 
-    var getDraftItemId = function(root, selectors) {
-        var input = bySelector(root, selectors.draftitemid);
-        return input ? (parseInt(input.value, 10) || 0) : 0;
+    const normaliseConfig = function(config) {
+        config = config || {};
+        return {
+            contextid: config.contextid || 0,
+            userid: config.userid || 0,
+            selectors: Object.assign({}, defaults, config.selectors || {})
+        };
     };
 
-    var selectedOptionalPlugins = function(root) {
-        return Array.prototype.slice.call(root.querySelectorAll('[data-role="optional-plugin"]:checked')).map(function(node) {
+    const getDraftItemId = function(root, selectors) {
+        const input = bySelector(root, selectors.draftitemid);
+        if (input && input.value) {
+            return parseInt(input.value, 10) || 0;
+        }
+
+        const filemanager = root.querySelector('[data-fieldtype="filemanager"] input[type="hidden"]');
+        return filemanager ? parseInt(filemanager.value, 10) || 0 : 0;
+    };
+
+    const selectedOptionalPlugins = function(root) {
+        return Array.from(root.querySelectorAll('[data-role="optional-plugin"]:checked')).map(function(node) {
             return node.value;
         });
     };
 
-    var setBusy = function(root, selectors, busy) {
-        var loader = bySelector(root, selectors.loader);
-        var check = bySelector(root, selectors.check);
-        var install = bySelector(root, selectors.install);
-
+    const setBusy = function(root, selectors, busy) {
+        const loader = bySelector(root, selectors.loader);
+        const check = bySelector(root, selectors.check);
+        const install = bySelector(root, selectors.install);
         if (loader) {
             loader.hidden = !busy;
         }
         if (check) {
-            check.disabled = !!busy;
+            check.disabled = busy;
         }
         if (install) {
-            install.disabled = !!busy || !state.filename;
+            install.disabled = busy || !state.filename;
         }
     };
 
-    var renderStatus = function(root, selectors, type, text) {
-        var region = bySelector(root, selectors.status);
+    const renderStatus = function(root, selectors, type, text) {
+        const region = bySelector(root, selectors.status);
         if (!region) {
             return;
         }
         region.innerHTML = '<div class="col-12"><div class="alert alert-' + type + '">' + text + '</div></div>';
     };
 
-    var renderFeedback = function(root, selectors, payload) {
-        var region = bySelector(root, selectors.feedback);
+    const renderFeedback = function(root, selectors, payload) {
+        const region = bySelector(root, selectors.feedback);
         if (region) {
-            region.textContent = (typeof payload === 'string') ? payload : JSON.stringify(payload, null, 2);
+            region.textContent = JSON.stringify(payload, null, 2);
         }
     };
 
-    var escapeHtml = function(text) {
-        var div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    };
-
-    var renderSummary = function(root, selectors) {
-        var region = bySelector(root, selectors.summary);
+    const renderSummary = function(root, selectors) {
+        const region = bySelector(root, selectors.summary);
         if (!region) {
             return;
         }
@@ -79,18 +96,16 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             region.innerHTML = '';
             return;
         }
-
         region.innerHTML = state.summary.map(function(section) {
-            var items = (section.items || []).map(function(item) {
-                return '<li>' + escapeHtml(item.text || '') + '</li>';
+            const items = (section.items || []).map(function(item) {
+                return '<li>' + item.text + '</li>';
             }).join('');
-
             return '' +
                 '<div class="col-12 col-lg-6 mb-3">' +
                     '<div class="card h-100">' +
                         '<div class="card-header d-flex justify-content-between align-items-center">' +
-                            '<strong>' + escapeHtml(section.title || '') + '</strong>' +
-                            '<span class="badge bg-secondary text-white">' + (section.count || 0) + '</span>' +
+                            '<strong>' + section.title + '</strong>' +
+                            '<span class="badge badge-secondary">' + section.count + '</span>' +
                         '</div>' +
                         '<div class="card-body"><ul class="mb-0">' + items + '</ul></div>' +
                     '</div>' +
@@ -98,8 +113,8 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         }).join('');
     };
 
-    var renderOptionalPlugins = function(root, selectors) {
-        var region = bySelector(root, selectors.optionalplugins);
+    const renderOptionalPlugins = function(root, selectors) {
+        const region = bySelector(root, selectors.optionalplugins);
         if (!region) {
             return;
         }
@@ -107,18 +122,16 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             region.innerHTML = '';
             return;
         }
-
         region.innerHTML = '' +
             '<div class="col-12">' +
                 '<div class="card">' +
                     '<div class="card-header"><strong>Optionale Plugins</strong></div>' +
                     '<div class="card-body">' +
                         state.optionalplugins.map(function(plugin, index) {
-                            var cleanplugin = escapeHtml(plugin);
                             return '' +
-                                '<div class="form-check mb-2">' +
-                                    '<input class="form-check-input" type="checkbox" checked id="wbinstaller-optional-' + index + '" data-role="optional-plugin" value="' + cleanplugin + '">' +
-                                    '<label class="form-check-label" for="wbinstaller-optional-' + index + '">' + cleanplugin + '</label>' +
+                                '<div class="custom-control custom-checkbox mb-2">' +
+                                    '<input class="custom-control-input" type="checkbox" checked id="wbinstaller-optional-' + index + '" data-role="optional-plugin" value="' + plugin + '">' +
+                                    '<label class="custom-control-label" for="wbinstaller-optional-' + index + '">' + plugin + '</label>' +
                                 '</div>';
                         }).join('') +
                     '</div>' +
@@ -126,29 +139,25 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             '</div>';
     };
 
-    var updateFilename = function(root, selectors) {
-        var region = bySelector(root, selectors.filename);
+    const updateFilename = function(root, selectors) {
+        const region = bySelector(root, selectors.filename);
         if (region) {
             region.textContent = state.filename || '';
         }
     };
 
-    var call = function(methodname, args) {
+    const call = function(methodname, args) {
         return Ajax.call([{methodname: methodname, args: args}])[0];
     };
 
-    var handleException = function(root, selectors, exception) {
+    const handleException = function(root, selectors, error) {
         setBusy(root, selectors, false);
-        state.filename = '';
-        renderStatus(root, selectors, 'danger', (exception && exception.message) ? exception.message : 'Unbekannter Fehler');
-        renderFeedback(root, selectors, exception);
-        Notification.exception(exception);
+        renderStatus(root, selectors, 'danger', error && error.message ? error.message : 'Es ist ein Fehler aufgetreten.');
+        Notification.exception(error);
     };
 
-    var runCheck = function(root, selectors) {
-        var draftitemid = getDraftItemId(root, selectors);
-        var installbutton;
-
+    const runCheck = function(root, selectors) {
+        const draftitemid = getDraftItemId(root, selectors);
         if (!draftitemid) {
             renderStatus(root, selectors, 'warning', 'Bitte zuerst eine ZIP-Datei im Filepicker hochladen.');
             return;
@@ -160,7 +169,6 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             contextid: state.contextid,
             draftitemid: draftitemid
         }).then(function(response) {
-            installbutton = bySelector(root, selectors.install);
             state.filename = response.filename || '';
             state.summary = response.summary || [];
             state.optionalplugins = parseJson(response.optionalplugins, []);
@@ -170,18 +178,18 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             renderFeedback(root, selectors, parseJson(response.feedback, response.feedback));
             renderStatus(root, selectors, 'info', 'Rezept erfolgreich geprüft.');
             setBusy(root, selectors, false);
-            if (installbutton) {
-                installbutton.disabled = false;
+            const install = bySelector(root, selectors.install);
+            if (install) {
+                install.disabled = false;
             }
             return null;
-        }).catch(function(exception) {
-            handleException(root, selectors, exception);
+        }).catch(function(error) {
+            handleException(root, selectors, error);
         });
     };
 
-    var runInstall = function(root, selectors) {
-        var draftitemid = getDraftItemId(root, selectors);
-
+    const runInstall = function(root, selectors) {
+        const draftitemid = getDraftItemId(root, selectors);
         if (!draftitemid) {
             renderStatus(root, selectors, 'warning', 'Bitte zuerst eine ZIP-Datei im Filepicker hochladen.');
             return;
@@ -194,7 +202,7 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             draftitemid: draftitemid,
             optionalplugins: JSON.stringify(selectedOptionalPlugins(root))
         }).then(function(response) {
-            var finished = parseJson(response.finished, {});
+            const finished = parseJson(response.finished, {});
             renderFeedback(root, selectors, {
                 feedback: parseJson(response.feedback, response.feedback),
                 finished: finished,
@@ -208,52 +216,36 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             );
             setBusy(root, selectors, false);
             return null;
-        }).catch(function(exception) {
-            handleException(root, selectors, exception);
+        }).catch(function(error) {
+            handleException(root, selectors, error);
         });
-    };
-
-    var bindEvents = function(root, selectors) {
-        var check = bySelector(root, selectors.check);
-        var install = bySelector(root, selectors.install);
-        var draftinput = bySelector(root, selectors.draftitemid);
-
-        if (check) {
-            check.addEventListener('click', function(e) {
-                e.preventDefault();
-                runCheck(root, selectors);
-            });
-        }
-        if (install) {
-            install.addEventListener('click', function(e) {
-                e.preventDefault();
-                runInstall(root, selectors);
-            });
-        }
-        if (draftinput) {
-            draftinput.addEventListener('change', function() {
-                state.filename = '';
-                state.summary = [];
-                state.optionalplugins = [];
-                updateFilename(root, selectors);
-                renderSummary(root, selectors);
-                renderOptionalPlugins(root, selectors);
-                renderStatus(root, selectors, 'secondary', 'Neue Datei ausgewählt. Bitte Rezept analysieren.');
-                renderFeedback(root, selectors, '');
-                setBusy(root, selectors, false);
-            });
-        }
     };
 
     return {
         init: function(config) {
-            var root = document.querySelector(config.selectors.root);
+            config = normaliseConfig(config);
+            state.contextid = config.contextid;
+            state.userid = config.userid;
+            const root = document.querySelector(config.selectors.root);
             if (!root) {
                 return;
             }
-            state.contextid = config.contextid;
-            state.userid = config.userid;
-            bindEvents(root, config.selectors);
+
+            const check = bySelector(root, config.selectors.check);
+            const install = bySelector(root, config.selectors.install);
+
+            if (check) {
+                check.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    runCheck(root, config.selectors);
+                });
+            }
+            if (install) {
+                install.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    runInstall(root, config.selectors);
+                });
+            }
         }
     };
 });
