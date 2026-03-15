@@ -147,3 +147,6 @@ $string['warning_description'] = 'Some errors were encountered during the instal
 $string['wbinstaller:canexport'] = 'WB Installer: User can export';
 $string['wbinstaller:caninstall'] = 'WB Installer: User can install';
 $string['wbinstallerroledescription'] = 'Description for wbinstaller role';
+$string['analyserecipe'] = 'Analyse recipe';
+$string['norecipefile'] = 'No recipe ZIP was uploaded.';
+$string['optionalpluginsheading'] = 'Optional plugins in the ZIP:';

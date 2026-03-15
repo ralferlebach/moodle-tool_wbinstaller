@@ -1,41 +1,46 @@
-{{!
-    This file is part of Moodle - http://moodle.org/
-    Moodle is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-    Moodle is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-}}
-{{!
-    @template tool_installer/initview
-    Classes required for JS:
-    * none
-    Data attributes required for JS:
-    * none
-    Context variables required for this template:
-    Example context (json):
-    {
-        "userid" : 1
+<div id="tool-wbinstaller-app" class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12 col-xl-8">
+            {{{form}}}
+        </div>
+    </div>
 
-    }
-}}
-<div
-  id="tool-wbinstaller-app"
-  name="tool-wbinstaller-app"
-  user="{{userid}}"
-  contextid="{{contextid}}"
-  wwwroot="{{wwwroot}}"
->
-    <router-view></router-view>
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="btn-toolbar gap-2">
+                <button type="button" class="btn btn-secondary" data-action="check-recipe">
+                    {{#str}} analyserecipe, tool_wbinstaller {{/str}}
+                </button>
+                <button type="button" class="btn btn-primary" data-action="install-recipe" disabled>
+                    {{#str}} vueinstallbtn, tool_wbinstaller {{/str}}
+                </button>
+                <span class="text-muted align-self-center" data-region="filename"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3" data-region="loader" hidden>
+        <div class="col-12">
+            <div class="alert alert-info mb-0">{{#str}} vuewaitingtext, tool_wbinstaller {{/str}}</div>
+        </div>
+    </div>
+
+    <div class="row" data-region="status"></div>
+
+    <div class="row mt-3" data-region="recipe-summary"></div>
+
+    <div class="row mt-3" data-region="optional-plugins"></div>
+
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <strong>{{#str}} vueerrorheading, tool_wbinstaller {{/str}}</strong>
+                </div>
+                <div class="card-body">
+                    <pre class="mb-0" data-region="feedback" style="white-space: pre-wrap;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
-{{#js}}
-    require(['tool_wbinstaller/app-lazy'], function(init) {
-      init.init();
-    });
-{{/js}}
