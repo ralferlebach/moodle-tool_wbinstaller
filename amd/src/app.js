@@ -1,5 +1,5 @@
 define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
-    const state = {
+    var state = {
         contextid: null,
         userid: null,
         filename: '',
@@ -7,9 +7,14 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         optionalplugins: []
     };
 
-    const bySelector = (root, selector) => root.querySelector(selector);
+    var bySelector = function(root, selector) {
+        return root ? root.querySelector(selector) : null;
+    };
 
-    const parseJson = function(value, fallback) {
+    var parseJson = function(value, fallback) {
+        if (typeof value !== 'string') {
+            return (typeof value === 'undefined' || value === null) ? fallback : value;
+        }
         try {
             return JSON.parse(value);
         } catch (e) {
@@ -17,49 +22,56 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         }
     };
 
-    const getDraftItemId = function(root, selectors) {
-        const input = bySelector(root, selectors.draftitemid);
-        return input ? parseInt(input.value, 10) || 0 : 0;
+    var getDraftItemId = function(root, selectors) {
+        var input = bySelector(root, selectors.draftitemid);
+        return input ? (parseInt(input.value, 10) || 0) : 0;
     };
 
-    const selectedOptionalPlugins = function(root) {
-        return Array.from(root.querySelectorAll('[data-role="optional-plugin"]:checked')).map(function(node) {
+    var selectedOptionalPlugins = function(root) {
+        return Array.prototype.slice.call(root.querySelectorAll('[data-role="optional-plugin"]:checked')).map(function(node) {
             return node.value;
         });
     };
 
-    const setBusy = function(root, selectors, busy) {
-        const loader = bySelector(root, selectors.loader);
-        const check = bySelector(root, selectors.check);
-        const install = bySelector(root, selectors.install);
+    var setBusy = function(root, selectors, busy) {
+        var loader = bySelector(root, selectors.loader);
+        var check = bySelector(root, selectors.check);
+        var install = bySelector(root, selectors.install);
+
         if (loader) {
             loader.hidden = !busy;
         }
         if (check) {
-            check.disabled = busy;
+            check.disabled = !!busy;
         }
         if (install) {
-            install.disabled = busy || !state.filename;
+            install.disabled = !!busy || !state.filename;
         }
     };
 
-    const renderStatus = function(root, selectors, type, text) {
-        const region = bySelector(root, selectors.status);
+    var renderStatus = function(root, selectors, type, text) {
+        var region = bySelector(root, selectors.status);
         if (!region) {
             return;
         }
         region.innerHTML = '<div class="col-12"><div class="alert alert-' + type + '">' + text + '</div></div>';
     };
 
-    const renderFeedback = function(root, selectors, payload) {
-        const region = bySelector(root, selectors.feedback);
+    var renderFeedback = function(root, selectors, payload) {
+        var region = bySelector(root, selectors.feedback);
         if (region) {
-            region.textContent = JSON.stringify(payload, null, 2);
+            region.textContent = (typeof payload === 'string') ? payload : JSON.stringify(payload, null, 2);
         }
     };
 
-    const renderSummary = function(root, selectors) {
-        const region = bySelector(root, selectors.summary);
+    var escapeHtml = function(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    };
+
+    var renderSummary = function(root, selectors) {
+        var region = bySelector(root, selectors.summary);
         if (!region) {
             return;
         }
@@ -67,16 +79,18 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             region.innerHTML = '';
             return;
         }
+
         region.innerHTML = state.summary.map(function(section) {
-            const items = section.items.map(function(item) {
-                return '<li>' + item.text + '</li>';
+            var items = (section.items || []).map(function(item) {
+                return '<li>' + escapeHtml(item.text || '') + '</li>';
             }).join('');
+
             return '' +
                 '<div class="col-12 col-lg-6 mb-3">' +
                     '<div class="card h-100">' +
                         '<div class="card-header d-flex justify-content-between align-items-center">' +
-                            '<strong>' + section.title + '</strong>' +
-                            '<span class="badge badge-secondary">' + section.count + '</span>' +
+                            '<strong>' + escapeHtml(section.title || '') + '</strong>' +
+                            '<span class="badge bg-secondary text-white">' + (section.count || 0) + '</span>' +
                         '</div>' +
                         '<div class="card-body"><ul class="mb-0">' + items + '</ul></div>' +
                     '</div>' +
@@ -84,8 +98,8 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         }).join('');
     };
 
-    const renderOptionalPlugins = function(root, selectors) {
-        const region = bySelector(root, selectors.optionalplugins);
+    var renderOptionalPlugins = function(root, selectors) {
+        var region = bySelector(root, selectors.optionalplugins);
         if (!region) {
             return;
         }
@@ -93,16 +107,18 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             region.innerHTML = '';
             return;
         }
+
         region.innerHTML = '' +
             '<div class="col-12">' +
                 '<div class="card">' +
                     '<div class="card-header"><strong>Optionale Plugins</strong></div>' +
                     '<div class="card-body">' +
                         state.optionalplugins.map(function(plugin, index) {
+                            var cleanplugin = escapeHtml(plugin);
                             return '' +
-                                '<div class="custom-control custom-checkbox mb-2">' +
-                                    '<input class="custom-control-input" type="checkbox" checked id="wbinstaller-optional-' + index + '" data-role="optional-plugin" value="' + plugin + '">' +
-                                    '<label class="custom-control-label" for="wbinstaller-optional-' + index + '">' + plugin + '</label>' +
+                                '<div class="form-check mb-2">' +
+                                    '<input class="form-check-input" type="checkbox" checked id="wbinstaller-optional-' + index + '" data-role="optional-plugin" value="' + cleanplugin + '">' +
+                                    '<label class="form-check-label" for="wbinstaller-optional-' + index + '">' + cleanplugin + '</label>' +
                                 '</div>';
                         }).join('') +
                     '</div>' +
@@ -110,19 +126,29 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             '</div>';
     };
 
-    const updateFilename = function(root, selectors) {
-        const region = bySelector(root, selectors.filename);
+    var updateFilename = function(root, selectors) {
+        var region = bySelector(root, selectors.filename);
         if (region) {
             region.textContent = state.filename || '';
         }
     };
 
-    const call = function(methodname, args) {
+    var call = function(methodname, args) {
         return Ajax.call([{methodname: methodname, args: args}])[0];
     };
 
-    const runCheck = function(root, selectors) {
-        const draftitemid = getDraftItemId(root, selectors);
+    var handleException = function(root, selectors, exception) {
+        setBusy(root, selectors, false);
+        state.filename = '';
+        renderStatus(root, selectors, 'danger', (exception && exception.message) ? exception.message : 'Unbekannter Fehler');
+        renderFeedback(root, selectors, exception);
+        Notification.exception(exception);
+    };
+
+    var runCheck = function(root, selectors) {
+        var draftitemid = getDraftItemId(root, selectors);
+        var installbutton;
+
         if (!draftitemid) {
             renderStatus(root, selectors, 'warning', 'Bitte zuerst eine ZIP-Datei im Filepicker hochladen.');
             return;
@@ -134,7 +160,8 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             contextid: state.contextid,
             draftitemid: draftitemid
         }).then(function(response) {
-            state.filename = response.filename;
+            installbutton = bySelector(root, selectors.install);
+            state.filename = response.filename || '';
             state.summary = response.summary || [];
             state.optionalplugins = parseJson(response.optionalplugins, []);
             updateFilename(root, selectors);
@@ -143,13 +170,18 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             renderFeedback(root, selectors, parseJson(response.feedback, response.feedback));
             renderStatus(root, selectors, 'info', 'Rezept erfolgreich geprüft.');
             setBusy(root, selectors, false);
-            bySelector(root, selectors.install).disabled = false;
+            if (installbutton) {
+                installbutton.disabled = false;
+            }
             return null;
-        }).catch(Notification.exception);
+        }).catch(function(exception) {
+            handleException(root, selectors, exception);
+        });
     };
 
-    const runInstall = function(root, selectors) {
-        const draftitemid = getDraftItemId(root, selectors);
+    var runInstall = function(root, selectors) {
+        var draftitemid = getDraftItemId(root, selectors);
+
         if (!draftitemid) {
             renderStatus(root, selectors, 'warning', 'Bitte zuerst eine ZIP-Datei im Filepicker hochladen.');
             return;
@@ -162,7 +194,7 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             draftitemid: draftitemid,
             optionalplugins: JSON.stringify(selectedOptionalPlugins(root))
         }).then(function(response) {
-            const finished = parseJson(response.finished, {});
+            var finished = parseJson(response.finished, {});
             renderFeedback(root, selectors, {
                 feedback: parseJson(response.feedback, response.feedback),
                 finished: finished,
@@ -176,24 +208,52 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             );
             setBusy(root, selectors, false);
             return null;
-        }).catch(Notification.exception);
+        }).catch(function(exception) {
+            handleException(root, selectors, exception);
+        });
+    };
+
+    var bindEvents = function(root, selectors) {
+        var check = bySelector(root, selectors.check);
+        var install = bySelector(root, selectors.install);
+        var draftinput = bySelector(root, selectors.draftitemid);
+
+        if (check) {
+            check.addEventListener('click', function(e) {
+                e.preventDefault();
+                runCheck(root, selectors);
+            });
+        }
+        if (install) {
+            install.addEventListener('click', function(e) {
+                e.preventDefault();
+                runInstall(root, selectors);
+            });
+        }
+        if (draftinput) {
+            draftinput.addEventListener('change', function() {
+                state.filename = '';
+                state.summary = [];
+                state.optionalplugins = [];
+                updateFilename(root, selectors);
+                renderSummary(root, selectors);
+                renderOptionalPlugins(root, selectors);
+                renderStatus(root, selectors, 'secondary', 'Neue Datei ausgewählt. Bitte Rezept analysieren.');
+                renderFeedback(root, selectors, '');
+                setBusy(root, selectors, false);
+            });
+        }
     };
 
     return {
         init: function(config) {
-            state.contextid = config.contextid;
-            state.userid = config.userid;
-            const root = document.querySelector(config.selectors.root);
+            var root = document.querySelector(config.selectors.root);
             if (!root) {
                 return;
             }
-
-            bySelector(root, config.selectors.check).addEventListener('click', function() {
-                runCheck(root, config.selectors);
-            });
-            bySelector(root, config.selectors.install).addEventListener('click', function() {
-                runInstall(root, config.selectors);
-            });
+            state.contextid = config.contextid;
+            state.userid = config.userid;
+            bindEvents(root, config.selectors);
         }
     };
 });
