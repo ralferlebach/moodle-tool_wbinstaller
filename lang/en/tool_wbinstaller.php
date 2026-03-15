@@ -115,6 +115,7 @@ $string['translatorerror'] = 'The translation of {$a->changingcolumn} from the t
 $string['translatorsuccess'] = 'The translation of {$a->changingcolumn} from the table {$a->table} was successful.';
 $string['upgradeplugincompleted'] = 'Plugin {$a} successfully installed and configured.';
 $string['uploadbuttontext'] = 'Click here to choose recipe.';
+$string['uploadbuttontext_help'] = 'Click here to choose recipe.';
 $string['vuecategories'] = 'Category: ';
 $string['vuechooserecipe'] = 'Drag and drop Recipe File here or click below to upload the recipe.';
 $string['vueconfigheading'] = 'Config settings in the ZIP:';
